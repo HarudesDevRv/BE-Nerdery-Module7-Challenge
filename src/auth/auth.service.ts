@@ -96,6 +96,7 @@ export class AuthService {
         firstName: dto.firstName,
         lastName: dto.lastName,
         password: await bcrypt.hash(dto.password, this.saltRounds),
+        role: dto.role,
         address: { create: {} },
       },
     });
