@@ -37,7 +37,7 @@ export class AuthService {
         userId: user.userId,
         refreshToken: this.jwtService.sign(
           {
-            userId: user.userId,
+            sub: user.userId,
             email,
             role: user.role,
           },
