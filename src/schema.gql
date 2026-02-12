@@ -1,0 +1,76 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type Product {
+  productId: ID!
+  name: String!
+  description: String!
+  categoryId: String!
+  brandId: String!
+}
+
+type ProductImage {
+  imageId: ID!
+  url: String!
+}
+
+type ProductWithDetails {
+  productId: ID!
+  name: String!
+  description: String!
+  images: [ProductImage!]
+  price: Float
+  salePrice: Float
+  stock: Float
+  likesCount: Float
+}
+
+type Category {
+  name: String!
+  description: String!
+  imageUrl: String!
+}
+
+"""Upload custom scalar type"""
+scalar Upload
+
+type Query {
+  products(filter: ProductFilterInput): [ProductWithDetails!]!
+  productDetail(productId: String!): ProductWithDetails!
+  productCategories: [Category!]!
+}
+
+input ProductFilterInput {
+  category: String
+  page: Int = 1
+  limit: Int = 10
+}
+
+type Mutation {
+  createProduct(input: CreateProductInput!): Product!
+  updateProduct(productId: String!, input: UpdateProductInput!): Product!
+  deleteProduct(productId: String!): Boolean!
+  uploadProductImage(productId: String!, input: UploadImageInput!): ProductImage!
+  deleteProductImage(imageId: String!): ProductImage!
+  toggleLike(productId: String!, likeStatus: Boolean!): Boolean!
+}
+
+input CreateProductInput {
+  name: String!
+  description: String!
+  categoryId: String!
+  brandId: String!
+}
+
+input UpdateProductInput {
+  name: String
+  description: String
+  categoryId: String
+  brandId: String
+  isActive: Boolean
+}
+
+input UploadImageInput {
+  file: Upload!
+}

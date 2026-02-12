@@ -7,6 +7,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { ProductsModule } from './products/products.module';
 import { CaslModule } from './common/casl/casl.module';
+import { ImageUploadModule } from './common/services/image-upload.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { CaslModule } from './common/casl/casl.module';
     CaslModule,
     AuthModule,
     ProductsModule,
+    ImageUploadModule,
   ],
 })
 export class AppModule {}
