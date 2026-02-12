@@ -140,8 +140,8 @@ model Product {
   createdAt   DateTime    @default(now()) @map("created_at")
   updatedAt   DateTime    @updatedAt @map("updated_at")
   deletedAt   DateTime?   @map("deleted_at")
-  users       UserLike[]
-  stores      Inventory[]
+  userLikes   UserLike[]
+  inventories Inventory[]
   images      Image[]
 
   @@unique([name, managerId])
