@@ -44,6 +44,7 @@ export class CaslAbilityFactory {
         can(Action.Manage, 'Brand');
         can(Action.Manage, 'Inventory');
         can(Action.Read, 'Order');
+        can(Action.Update, 'Order');
         can(Action.Manage, 'Delivery');
         break;
 
@@ -61,6 +62,7 @@ export class CaslAbilityFactory {
       case 'delivery_person':
         can(Action.Read, 'Delivery');
         can(Action.Update, 'Delivery');
+        can(Action.Update, 'Order');
         can(Action.Read, 'Order');
         break;
     }
