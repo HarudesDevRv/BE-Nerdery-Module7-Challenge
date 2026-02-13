@@ -1,8 +1,9 @@
-import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args, ID } from '@nestjs/graphql';
 import { UseGuards } from '@nestjs/common';
-import { ProductsService } from './products.service';
+import { ProductsService } from './services/products.service';
 import {
   Category,
+  ManagerProduct,
   Product,
   ProductImage,
   ProductWithDetails,
@@ -29,23 +30,25 @@ export class ProductsResolver {
   async products(
     @Args('filter', { nullable: true }) filter?: ProductFilterInput,
   ) {
-    const products = (await this.productsService.findAll(filter ?? {})).map(
-      (product) => ({
-        productId: product.productId,
-        name: product.name,
-        description: product.description,
-        category: product.category.name,
-        brand: product.brand.name,
-        ...product.inventories[0],
-        images: product.images,
-      }),
-    );
+    const products = await this.productsService.findAll(filter ?? {});
     return products;
   }
 
   @Query(() => ProductWithDetails)
-  productDetail(@Args('productId') productId: string) {
+  productDetail(
+    @Args({ name: 'productId', type: () => ID }) productId: string,
+  ) {
     return this.productsService.findOne(productId);
+  }
+
+  @Query(() => [ManagerProduct])
+  @UseGuards(JwtAuthGuard /*, PoliciesGuard*/)
+  //@CheckPolicies((ability) => ability.can(Action.Create, 'Product'))
+  async managerProducts(
+    @CurrentUser() user: { userId: string },
+    @Args('filter', { nullable: true }) filter?: ProductFilterInput,
+  ): Promise<ManagerProduct[]> {
+    return this.productsService.getByManagerId(user.userId, filter ?? {});
   }
 
   @Query(() => [Category])
@@ -53,32 +56,34 @@ export class ProductsResolver {
     return this.productsService.getCategories();
   }
 
-  @Mutation(() => Product)
+  @Mutation(() => ManagerProduct)
   @UseGuards(JwtAuthGuard, PoliciesGuard)
   @CheckPolicies((ability) => ability.can(Action.Create, 'Product'))
   async createProduct(
     @Args('input') input: CreateProductInput,
     @CurrentUser() user: { userId: string },
-  ) {
-    console.log(user);
+  ): Promise<ManagerProduct> {
     const product = await this.productsService.create(input, user.userId);
     return product;
   }
 
-  @Mutation(() => Product)
+  @Mutation(() => ManagerProduct)
   @UseGuards(JwtAuthGuard, PoliciesGuard)
   @CheckPolicies((ability) => ability.can(Action.Update, 'Product'))
-  updateProduct(
-    @Args('productId') productId: string,
+  async updateProduct(
+    @Args({ name: 'productId', type: () => ID }) productId: string,
     @Args('input') input: UpdateProductInput,
-  ) {
-    return this.productsService.update(productId, input);
+    @CurrentUser() user: { userId: string },
+  ): Promise<ManagerProduct> {
+    return this.productsService.update(productId, input, user.userId);
   }
 
   @Mutation(() => Boolean)
   @UseGuards(JwtAuthGuard, PoliciesGuard)
   @CheckPolicies((ability) => ability.can(Action.Delete, 'Product'))
-  deleteProduct(@Args('productId') productId: string) {
+  async deleteProduct(
+    @Args({ name: 'productId', type: () => ID }) productId: string,
+  ): Promise<boolean> {
     return this.productsService.delete(productId);
   }
 
@@ -88,7 +93,7 @@ export class ProductsResolver {
   async uploadProductImage(
     @Args('productId') productId: string,
     @Args('input') input: UploadImageInput,
-  ) {
+  ): Promise<ProductImage> {
     //TODO: Upload image resolver logic
     const stream = input.file.createReadStream();
     const imageUrl = await this.imageUploadService.UploadImage(
@@ -98,10 +103,12 @@ export class ProductsResolver {
     return this.productsService.createImage(productId, imageUrl);
   }
 
-  @Mutation(() => ProductImage)
+  @Mutation(() => Boolean)
   @UseGuards(JwtAuthGuard, PoliciesGuard)
   @CheckPolicies((ability) => ability.can(Action.Create, 'Image'))
-  async deleteProductImage(@Args('imageId') imageId: string) {
+  async deleteProductImage(
+    @Args({ name: 'imageId', type: () => ID }) imageId: string,
+  ): Promise<boolean> {
     //TODO: Delete image resolver logic
     return this.productsService.deleteImage(imageId);
   }
@@ -110,7 +117,7 @@ export class ProductsResolver {
   @UseGuards(JwtAuthGuard, PoliciesGuard)
   @CheckPolicies((ability) => ability.can(Action.Like, 'Product'))
   toggleLike(
-    @Args('productId') productId: string,
+    @Args({ name: 'productId', type: () => ID }) productId: string,
     @Args('likeStatus') likeStatus: boolean,
     @CurrentUser() user: { userId: string },
   ) {

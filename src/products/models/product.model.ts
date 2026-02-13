@@ -10,14 +10,17 @@ class BaseProduct {
 
   @Field()
   description: string;
+
+  @Field(() => [ProductImage])
+  images: ProductImage[];
 }
 
 @ObjectType()
 export class Product extends BaseProduct {
-  @Field()
+  @Field(() => ID)
   categoryId: string;
 
-  @Field()
+  @Field(() => ID)
   brandId: string;
 }
 
@@ -32,19 +35,22 @@ export class ProductImage {
 
 @ObjectType()
 export class ProductWithDetails extends BaseProduct {
-  @Field(() => [ProductImage], { nullable: true })
-  images?: ProductImage[];
+  @Field()
+  category: string;
 
-  @Field(() => Float, { nullable: true })
+  @Field()
+  brand: string;
+
+  @Field(() => Float)
   price?: number;
 
-  @Field(() => Float, { nullable: true })
+  @Field(() => Float)
   salePrice?: number;
 
-  @Field({ nullable: true })
+  @Field()
   stock?: number;
 
-  @Field({ nullable: true })
+  @Field()
   likesCount?: number;
 }
 
@@ -58,4 +64,34 @@ export class Category {
 
   @Field()
   imageUrl: string;
+}
+
+@ObjectType()
+export class Inventory {
+  @Field(() => ID)
+  inventoryId: string;
+
+  @Field(() => ID)
+  productId: string;
+
+  @Field(() => ID)
+  storeId: string;
+
+  @Field(() => Float, { nullable: true })
+  price?: number;
+
+  @Field(() => Float, { nullable: true })
+  salePrice?: number;
+
+  @Field({ nullable: true })
+  stock?: number;
+
+  @Field()
+  isActive: boolean;
+}
+
+@ObjectType()
+export class ManagerProduct extends Product {
+  @Field(() => [Inventory])
+  inventories: Inventory[];
 }

@@ -2,14 +2,6 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
-type Product {
-  productId: ID!
-  name: String!
-  description: String!
-  categoryId: String!
-  brandId: String!
-}
-
 type ProductImage {
   imageId: ID!
   url: String!
@@ -19,11 +11,13 @@ type ProductWithDetails {
   productId: ID!
   name: String!
   description: String!
-  images: [ProductImage!]
-  price: Float
-  salePrice: Float
-  stock: Float
-  likesCount: Float
+  images: [ProductImage!]!
+  category: String!
+  brand: String!
+  price: Float!
+  salePrice: Float!
+  stock: Float!
+  likesCount: Float!
 }
 
 type Category {
@@ -32,12 +26,33 @@ type Category {
   imageUrl: String!
 }
 
+type Inventory {
+  inventoryId: ID!
+  productId: ID!
+  storeId: ID!
+  price: Float
+  salePrice: Float
+  stock: Float
+  isActive: Boolean!
+}
+
+type ManagerProduct {
+  productId: ID!
+  name: String!
+  description: String!
+  images: [ProductImage!]!
+  categoryId: ID!
+  brandId: ID!
+  inventories: [Inventory!]!
+}
+
 """Upload custom scalar type"""
 scalar Upload
 
 type Query {
   products(filter: ProductFilterInput): [ProductWithDetails!]!
-  productDetail(productId: String!): ProductWithDetails!
+  productDetail(productId: ID!): ProductWithDetails!
+  managerProducts(filter: ProductFilterInput): [ManagerProduct!]!
   productCategories: [Category!]!
 }
 
@@ -48,26 +63,26 @@ input ProductFilterInput {
 }
 
 type Mutation {
-  createProduct(input: CreateProductInput!): Product!
-  updateProduct(productId: String!, input: UpdateProductInput!): Product!
-  deleteProduct(productId: String!): Boolean!
+  createProduct(input: CreateProductInput!): ManagerProduct!
+  updateProduct(productId: ID!, input: UpdateProductInput!): ManagerProduct!
+  deleteProduct(productId: ID!): Boolean!
   uploadProductImage(productId: String!, input: UploadImageInput!): ProductImage!
-  deleteProductImage(imageId: String!): ProductImage!
-  toggleLike(productId: String!, likeStatus: Boolean!): Boolean!
+  deleteProductImage(imageId: ID!): Boolean!
+  toggleLike(productId: ID!, likeStatus: Boolean!): Boolean!
 }
 
 input CreateProductInput {
   name: String!
   description: String!
-  categoryId: String!
-  brandId: String!
+  categoryId: ID!
+  brandId: ID!
 }
 
 input UpdateProductInput {
   name: String
   description: String
-  categoryId: String
-  brandId: String
+  categoryId: ID
+  brandId: ID
   isActive: Boolean
 }
 

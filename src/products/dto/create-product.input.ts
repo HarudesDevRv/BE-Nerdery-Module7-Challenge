@@ -1,4 +1,4 @@
-import { InputType, Field } from '@nestjs/graphql';
+import { InputType, Field, ID } from '@nestjs/graphql';
 import { IsString, MaxLength, IsUUID } from 'class-validator';
 
 @InputType()
@@ -13,11 +13,11 @@ export class CreateProductInput {
   @MaxLength(1000)
   description: string;
 
-  @Field()
+  @Field(() => ID)
   @IsUUID()
   categoryId: string;
 
-  @Field()
+  @Field(() => ID)
   @IsUUID()
   brandId: string;
 }
