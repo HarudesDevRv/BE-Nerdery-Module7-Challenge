@@ -29,13 +29,14 @@ enum OrderStatus {
 }
 
 model Address {
-  addressId  String   @id @default(uuid()) @map("address_id")
-  address    String   @default("") @map("address") @db.VarChar(255)
-  city       String   @default("") @map("city") @db.VarChar(100)
-  country    String   @default("") @map("country") @db.VarChar(100)
-  postalCode String?  @map("postal_code") @db.VarChar(20)
-  createdAt  DateTime @default(now()) @map("created_at")
-  updatedAt  DateTime @updatedAt @map("updated_at")
+  addressId  String    @id @default(uuid()) @map("address_id")
+  address    String    @default("") @map("address") @db.VarChar(255)
+  city       String    @default("") @map("city") @db.VarChar(100)
+  country    String    @default("") @map("country") @db.VarChar(100)
+  postalCode String?   @map("postal_code") @db.VarChar(20)
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+  deletedAt  DateTime? @map("deleted_at")
   user       User?
   store      Store?
 
@@ -94,6 +95,7 @@ model Category {
   isActive    Boolean   @map("is_active")
   createdAt   DateTime  @default(now()) @map("created_at")
   updatedAt   DateTime  @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
   product     Product[]
 
   @@map("categories")
@@ -107,6 +109,7 @@ model Brand {
   isActive    Boolean   @map("is_active")
   createdAt   DateTime  @default(now()) @map("created_at")
   updatedAt   DateTime  @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
   product     Product[]
 
   @@map("brands")
@@ -121,6 +124,7 @@ model Store {
   name      String      @unique @db.VarChar(100)
   createdAt DateTime    @default(now()) @map("created_at")
   updatedAt DateTime    @updatedAt @map("updated_at")
+  deletedAt DateTime?   @map("deleted_at")
   products  Inventory[]
 
   @@map("stores")
@@ -149,12 +153,13 @@ model Product {
 }
 
 model Image {
-  imageId   String   @id @default(uuid())
+  imageId   String    @id @default(uuid())
   productId String
-  product   Product  @relation(fields: [productId], references: [productId])
-  url       String   @unique @db.VarChar(2048)
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  product   Product   @relation(fields: [productId], references: [productId])
+  url       String    @unique @db.VarChar(2048)
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
 
   @@map("images")
 }
@@ -169,6 +174,7 @@ model Inventory {
   salePrice   Decimal        @map("sale_price") @db.Decimal(8, 2)
   stock       Int
   isActive    Boolean        @map("is_active")
+  deletedAt   DateTime?      @map("deleted_at")
   orders      OrderProduct[]
   carts       CartItem[]
 
@@ -212,13 +218,14 @@ model CartItem {
 }
 
 model Payment {
-  paymentId     String   @id @default(uuid()) @map("payment_id")
-  amount        Decimal  @db.Decimal(10, 2)
-  currency      String   @db.VarChar(3)
-  paymentMethod String   @map("payment_method") @db.VarChar(50)
-  status        String   @db.VarChar(30)
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
+  paymentId     String    @id @default(uuid()) @map("payment_id")
+  amount        Decimal   @db.Decimal(10, 2)
+  currency      String    @db.VarChar(3)
+  paymentMethod String    @map("payment_method") @db.VarChar(50)
+  status        String    @db.VarChar(30)
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  deletedAt     DateTime? @map("deleted_at")
   order         Order?
 
   @@map("payments")
@@ -232,6 +239,7 @@ model Order {
   payment   Payment        @relation(fields: [paymentId], references: [paymentId])
   createdAt DateTime       @default(now()) @map("created_at")
   updatedAt DateTime       @updatedAt @map("updated_at")
+  deletedAt DateTime?      @map("deleted_at")
   products  OrderProduct[]
 
   @@map("orders")

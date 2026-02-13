@@ -1,9 +1,11 @@
 import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import * as bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
 const saltRounds = 10;
 
 const connectionString = process.env.DATABASE_URL;
+const jwtSecret = process.env.JWT_SECRET;
 if (!connectionString) {
   throw new Error('Database URL not found');
 }
@@ -81,6 +83,22 @@ async function seed() {
           country: 'Peru',
         },
       },
+    },
+  });
+
+  await prisma.refreshToken.create({
+    data: {
+      userId: manager.userId,
+      refreshToken: jwt.sign(
+        {
+          sub: manager.userId,
+          email: manager.email,
+          role: manager.role,
+        },
+        jwtSecret || 'secret',
+        { expiresIn: '60d' },
+      ),
+      expiresAt: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
     },
   });
 
@@ -460,7 +478,7 @@ async function seed() {
 
 seed()
   .then(() => {
-    console.log('Seeder executed successfully');
+    console.log('Seeder initiated successfully');
   })
   .catch(async (e) => {
     console.error(e);
