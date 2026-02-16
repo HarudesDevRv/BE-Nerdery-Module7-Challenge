@@ -362,15 +362,8 @@ async function seed() {
   });
 
   // --- Inventory (products in store with prices and stock) ---
-  const inventoryIphone = await prisma.inventory.upsert({
-    where: {
-      storeId_productId: {
-        storeId: store.storeId,
-        productId: productIphone.productId,
-      },
-    },
-    update: {},
-    create: {
+  const inventoryIphone = await prisma.inventory.create({
+    data: {
       storeId: store.storeId,
       productId: productIphone.productId,
       price: 999.99,
@@ -380,11 +373,8 @@ async function seed() {
     },
   });
 
-  const inventoryGalaxy = await prisma.inventory.upsert({
-    where: { inventoryId: 'seed-inv-galaxy' },
-    update: {},
-    create: {
-      inventoryId: 'seed-inv-galaxy',
+  const inventoryGalaxy = await prisma.inventory.create({
+    data: {
       storeId: store.storeId,
       productId: productGalaxy.productId,
       price: 849.99,
@@ -394,11 +384,8 @@ async function seed() {
     },
   });
 
-  const inventoryAirMax = await prisma.inventory.upsert({
-    where: { inventoryId: 'seed-inv-airmax' },
-    update: {},
-    create: {
-      inventoryId: 'seed-inv-airmax',
+  const inventoryAirMax = await prisma.inventory.create({
+    data: {
       storeId: store.storeId,
       productId: productAirMax.productId,
       price: 130.0,
@@ -465,30 +452,30 @@ async function seed() {
 
   await prisma.cartItem.upsert({
     where: {
-      cartId_productId: {
+      cartId_inventoryId: {
         cartId: cart.cartId,
-        productId: inventoryIphone.inventoryId,
+        inventoryId: inventoryIphone.inventoryId,
       },
     },
     update: {},
     create: {
       cartId: cart.cartId,
-      productId: inventoryIphone.inventoryId,
+      inventoryId: inventoryIphone.inventoryId,
       amount: 1,
     },
   });
 
   await prisma.cartItem.upsert({
     where: {
-      cartId_productId: {
+      cartId_inventoryId: {
         cartId: cart.cartId,
-        productId: inventoryAirMax.inventoryId,
+        inventoryId: inventoryAirMax.inventoryId,
       },
     },
     update: {},
     create: {
       cartId: cart.cartId,
-      productId: inventoryAirMax.inventoryId,
+      inventoryId: inventoryAirMax.inventoryId,
       amount: 2,
     },
   });

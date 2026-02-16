@@ -207,13 +207,13 @@ model Cart {
 }
 
 model CartItem {
-  cartId    String    @map("cart_id")
-  productId String    @map("product_id")
-  product   Inventory @relation(fields: [productId], references: [inventoryId])
-  cart      Cart      @relation(fields: [cartId], references: [cartId])
-  amount    Int
+  cartId      String    @map("cart_id")
+  inventoryId String    @map("inventory_id")
+  inventory   Inventory @relation(fields: [inventoryId], references: [inventoryId])
+  cart        Cart      @relation(fields: [cartId], references: [cartId])
+  amount      Int
 
-  @@id([cartId, productId])
+  @@id([cartId, inventoryId])
   @@map("cart_items")
 }
 
