@@ -29,8 +29,8 @@ export class ProductImage {
   @Field(() => ID)
   imageId: string;
 
-  @Field()
-  url: string;
+  @Field(() => String, { nullable: true })
+  url: string | null;
 }
 
 @ObjectType()

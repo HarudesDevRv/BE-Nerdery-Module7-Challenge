@@ -1,10 +1,66 @@
-import { Injectable } from '@nestjs/common';
-import { ReadStream } from 'graphql-upload-ts';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { S3Client, DeleteObjectCommand } from '@aws-sdk/client-s3';
+import { Upload } from '@aws-sdk/lib-storage';
+import { ConfigService } from '@nestjs/config';
+import * as graphqlUploadTs from 'graphql-upload-ts';
+import path from 'path';
 
 @Injectable()
 export class ImageUploadService {
-  async UploadImage(stream: ReadStream, mimetype: string): Promise<string> {
-    //TODO: Implement image upload
-    return 'URL';
+  private readonly client: S3Client;
+  private readonly bucket: string;
+  constructor(configService: ConfigService) {
+    const region = configService.getOrThrow<string>('AWS_REGION', 'us-east-1');
+    this.client = new S3Client({
+      region,
+    });
+    this.bucket = configService.getOrThrow<string>('AWS_S3_BUCKET_NAME');
+  }
+
+  async UploadImage(
+    file: graphqlUploadTs.FileUpload,
+    uploadKey: string,
+  ): Promise<string> {
+    const stream = file.createReadStream();
+
+    const extension = path.extname(file.filename);
+
+    const uploadParams = {
+      Bucket: this.bucket,
+      Key: uploadKey + extension,
+      Body: stream,
+      encode: file.encoding,
+    };
+
+    const upload = new Upload({
+      client: this.client,
+      params: uploadParams,
+    });
+
+    const uploadedFile = await upload.done();
+
+    if (!uploadedFile.Location) {
+      throw new Error('Product image upload failed');
+    }
+
+    return uploadedFile.Location;
+  }
+
+  async DeleteImage(fileKey: string): Promise<boolean> {
+    const deleteParams = {
+      Bucket: this.bucket,
+      Key: fileKey,
+    };
+
+    const deleteCommand = new DeleteObjectCommand(deleteParams);
+
+    try {
+      const deletedImage = await this.client.send(deleteCommand);
+      console.log(deletedImage);
+      return true;
+    } catch (error) {
+      console.log(error);
+      throw new InternalServerErrorException('Could not delete file');
+    }
   }
 }

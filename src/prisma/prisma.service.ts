@@ -24,6 +24,29 @@ export class PrismaService
     super({ adapter });
   }
 
+  readonly deletedAtFilter = this.$extends({
+    query: {
+      $allModels: {
+        async findMany({ args, query }) {
+          args.where = { ...args.where, deletedAt: null };
+          return query(args);
+        },
+        async findFirst({ args, query }) {
+          args.where = { ...args.where, deletedAt: null };
+          return query(args);
+        },
+        async findUnique({ args, query }) {
+          args.where = { ...args.where, deletedAt: null };
+          return query(args);
+        },
+        async count({ args, query }) {
+          args.where = { ...args.where, deletedAt: null };
+          return query(args);
+        },
+      },
+    },
+  });
+
   async onModuleInit() {
     await this.$connect();
   }

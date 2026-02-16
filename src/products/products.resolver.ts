@@ -1,5 +1,9 @@
 import { Resolver, Query, Mutation, Args, ID } from '@nestjs/graphql';
-import { UseGuards } from '@nestjs/common';
+import {
+  ConflictException,
+  InternalServerErrorException,
+  UseGuards,
+} from '@nestjs/common';
 import { ProductsService } from './services/products.service';
 import {
   Category,
@@ -16,8 +20,8 @@ import { PoliciesGuard } from '../common/casl/policies.guard';
 import { CheckPolicies } from '../common/casl/check-policies.decorator';
 import { Action } from '../common/casl/casl-ability.factory';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
-import { UploadImageInput } from './dto/upload-image.input';
 import { ImageUploadService } from 'src/common/services/image-upload.service';
+import * as graphqlUploadTs from 'graphql-upload-ts';
 
 @Resolver(() => Product)
 export class ProductsResolver {
@@ -92,16 +96,48 @@ export class ProductsResolver {
   @UseGuards(JwtAuthGuard, PoliciesGuard)
   @CheckPolicies((ability) => ability.can(Action.Create, 'Image'))
   async uploadProductImage(
-    @Args('productId') productId: string,
-    @Args('input') input: UploadImageInput,
-  ): Promise<ProductImage> {
-    //TODO: Upload image resolver logic
-    const stream = input.file.createReadStream();
-    const imageUrl = await this.imageUploadService.UploadImage(
-      stream,
-      input.file.mimetype,
-    );
-    return this.productsService.createImage(productId, imageUrl);
+    @Args({ name: 'productId', type: () => ID }) productId: string,
+    @Args({ name: 'file', type: () => graphqlUploadTs.GraphQLUpload })
+    file: graphqlUploadTs.FileUpload,
+    @CurrentUser() user: { userId: string },
+  ): Promise<ProductImage | null> {
+    let databaseImage: ProductImage | null = null;
+
+    try {
+      databaseImage = await this.productsService.createImage(
+        productId,
+        null,
+        user.userId,
+      );
+
+      if (file.mimetype.substring(0, file.mimetype.indexOf('/')) != 'image') {
+        throw new ConflictException('The file should be an image');
+      }
+
+      const uploadKey = `products/${productId}/images/${databaseImage.imageId}`;
+      const imageUrl = await this.imageUploadService.UploadImage(
+        file,
+        uploadKey,
+      );
+
+      const uploadedImage = await this.productsService.updateImageUrl(
+        databaseImage.imageId,
+        imageUrl,
+        user.userId,
+      );
+
+      return uploadedImage;
+    } catch (error) {
+      if (databaseImage?.imageId) {
+        await this.productsService.deleteImage(
+          databaseImage.imageId,
+          user.userId,
+        );
+        throw error;
+      } else {
+        throw new InternalServerErrorException('Could not upload the image');
+      }
+    }
   }
 
   @Mutation(() => Boolean)
@@ -109,9 +145,26 @@ export class ProductsResolver {
   @CheckPolicies((ability) => ability.can(Action.Create, 'Image'))
   async deleteProductImage(
     @Args({ name: 'imageId', type: () => ID }) imageId: string,
+    @CurrentUser() user: { userId: string },
   ): Promise<boolean> {
-    //TODO: Delete image resolver logic
-    return this.productsService.deleteImage(imageId);
+    const deletedImage = await this.productsService.deleteImage(
+      imageId,
+      user.userId,
+    );
+
+    if (!deletedImage.url) {
+      throw new InternalServerErrorException(
+        'There was a problem deleting the image',
+      );
+    }
+
+    const imageUrl = deletedImage.url.substring(
+      deletedImage.url?.indexOf('/products') + 1,
+    );
+
+    await this.imageUploadService.DeleteImage(imageUrl);
+
+    return true;
   }
 
   @Mutation(() => Boolean)

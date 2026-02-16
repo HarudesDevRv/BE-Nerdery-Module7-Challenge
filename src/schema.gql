@@ -4,7 +4,7 @@
 
 type ProductImage {
   imageId: ID!
-  url: String!
+  url: String
 }
 
 type ProductWithDetails {
@@ -46,14 +46,11 @@ type ManagerProduct {
   inventories: [Inventory!]!
 }
 
-"""Upload custom scalar type"""
-scalar Upload
-
 type Query {
+  productCategories: [Category!]!
   products(filter: ProductFilterInput): [ProductWithDetails!]!
   productDetail(productId: ID!): ProductWithDetails!
   managerProducts(filter: ProductFilterInput): [ManagerProduct!]!
-  productCategories: [Category!]!
 }
 
 input ProductFilterInput {
@@ -66,7 +63,7 @@ type Mutation {
   createProduct(input: CreateProductInput!): ManagerProduct!
   updateProduct(productId: ID!, input: UpdateProductInput!): ManagerProduct!
   deleteProduct(productId: ID!): Boolean!
-  uploadProductImage(productId: String!, input: UploadImageInput!): ProductImage!
+  uploadProductImage(productId: ID!, file: Upload!): ProductImage!
   deleteProductImage(imageId: ID!): Boolean!
   toggleLike(productId: ID!, likeStatus: Boolean!): Boolean!
 }
@@ -86,6 +83,5 @@ input UpdateProductInput {
   isActive: Boolean
 }
 
-input UploadImageInput {
-  file: Upload!
-}
+"""The `Upload` scalar type represents a file upload."""
+scalar Upload

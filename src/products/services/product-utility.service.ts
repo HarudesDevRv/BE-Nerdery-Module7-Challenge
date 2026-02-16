@@ -15,7 +15,7 @@ type ProductDetailInventory = {
 
 type ProductDetailImage = {
   imageId: string;
-  url: string;
+  url: string | null;
 };
 
 type DetailedProduct = {

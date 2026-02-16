@@ -10,6 +10,7 @@ import { ProductFilterInput } from '../dto/product-filter.input';
 import { ProductUtilityService } from './product-utility.service';
 import { Prisma } from '@prisma/client';
 import { ManagerProductPaginationInput } from '../dto/manager-product-pagination.input';
+import { ProductImage } from '../models/product.model';
 
 const productDetailSelect = {
   productId: true,
@@ -17,7 +18,10 @@ const productDetailSelect = {
   brand: { select: { name: true } },
   name: true,
   description: true,
-  images: { select: { imageId: true, url: true } },
+  images: {
+    select: { imageId: true, url: true },
+    where: { deletedAt: null, url: { not: null } },
+  },
   inventories: {
     select: { price: true, stock: true, salePrice: true },
     take: 1,
@@ -49,8 +53,8 @@ export class ProductsService {
       throw new NotFoundException('Category not found');
     }
 
-    const products = await this.prisma.product.findMany({
-      where: { categoryId },
+    const products = await this.prisma.deletedAtFilter.product.findMany({
+      where: { categoryId, inventories: { some: {} } },
       select: productDetailSelect,
       take: filter.limit || 10,
       skip: filter.page ? (filter.page - 1) * (filter.limit || 10) : undefined,
@@ -64,8 +68,8 @@ export class ProductsService {
   }
 
   async findOne(productId: string) {
-    const product = await this.prisma.product.findUnique({
-      where: { productId },
+    const product = await this.prisma.deletedAtFilter.product.findUnique({
+      where: { productId, inventories: { some: {} } },
       select: productDetailSelect,
     });
 
@@ -79,15 +83,7 @@ export class ProductsService {
     managerId: string,
     pagination: ManagerProductPaginationInput,
   ) {
-    const manager = await this.prisma.user.findUnique({
-      where: { userId: managerId },
-    });
-
-    if (!manager) {
-      throw new NotFoundException('Manager not found');
-    }
-
-    const products = await this.prisma.product.findMany({
+    const products = await this.prisma.deletedAtFilter.product.findMany({
       where: { managerId },
       include: {
         images: true,
@@ -130,7 +126,7 @@ export class ProductsService {
     input: UpdateProductInput,
     managerId: string,
   ) {
-    const product = await this.prisma.product.findUnique({
+    const product = await this.prisma.deletedAtFilter.product.findUnique({
       where: { productId },
     });
 
@@ -142,7 +138,7 @@ export class ProductsService {
       throw new ForbiddenException("Can't access this product");
     }
 
-    const updatedProduct = await this.prisma.product.update({
+    const updatedProduct = await this.prisma.deletedAtFilter.product.update({
       where: { productId },
       include: {
         images: true,
@@ -157,7 +153,7 @@ export class ProductsService {
   }
 
   async delete(productId: string, managerId: string): Promise<boolean> {
-    const product = await this.prisma.product.findUnique({
+    const product = await this.prisma.deletedAtFilter.product.findUnique({
       where: { productId },
     });
 
@@ -178,8 +174,7 @@ export class ProductsService {
   }
 
   async toggleLike(productId: string, userId: string, isActive: boolean) {
-    // TODO: implement like/unlike toggle
-    const product = await this.prisma.product.findUnique({
+    const product = await this.prisma.deletedAtFilter.product.findUnique({
       where: { productId },
     });
     if (!product) {
@@ -206,26 +201,78 @@ export class ProductsService {
     return likeStatus.isActive;
   }
 
-  async createImage(productId: string, url: string) {
-    //TODO: Implement image upload
-    return this.prisma.image.create({
+  async createImage(
+    productId: string,
+    url: string | null,
+    userId: string,
+  ): Promise<ProductImage> {
+    const product = await this.prisma.deletedAtFilter.product.findUnique({
+      where: { productId },
+    });
+
+    if (!product) {
+      throw new NotFoundException('Product not found');
+    }
+
+    if (product.managerId !== userId) {
+      throw new ForbiddenException("Can't access this product");
+    }
+
+    const newImage = await this.prisma.image.create({
       data: {
         productId,
         url,
       },
     });
+
+    return newImage;
   }
-  async deleteImage(imageId: string): Promise<boolean> {
-    //TODO: Implement image upload
-    return (
-      (await this.prisma.image.update({
-        where: {
-          imageId,
-        },
-        data: {
-          deletedAt: Date(),
-        },
-      })) !== null
-    );
+
+  async updateImageUrl(
+    imageId: string,
+    url: string,
+    userId: string,
+  ): Promise<ProductImage> {
+    const image = await this.prisma.deletedAtFilter.image.findUnique({
+      where: { imageId },
+      include: { product: true },
+    });
+
+    if (!image) {
+      throw new NotFoundException('Product not found');
+    }
+
+    if (image.product.managerId !== userId) {
+      throw new ForbiddenException("Can't access this product");
+    }
+
+    const updatedImage = this.prisma.image.update({
+      where: { imageId },
+      data: { url },
+    });
+
+    return updatedImage;
+  }
+
+  async deleteImage(imageId: string, userId: string): Promise<ProductImage> {
+    const image = await this.prisma.deletedAtFilter.image.findUnique({
+      where: { imageId },
+      include: { product: true },
+    });
+
+    if (!image) {
+      throw new NotFoundException('Product not found');
+    }
+
+    if (image.product.managerId !== userId) {
+      throw new ForbiddenException("Can't access this product");
+    }
+
+    const deletedImage = await this.prisma.image.update({
+      where: { imageId },
+      data: { deletedAt: new Date() },
+    });
+
+    return deletedImage;
   }
 }

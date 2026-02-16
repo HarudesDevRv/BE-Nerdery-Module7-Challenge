@@ -36,7 +36,6 @@ export interface AuthUser {
 export class CaslAbilityFactory {
   createForUser(user: AuthUser): AppAbility {
     const { can, build } = new AbilityBuilder<AppAbility>(createMongoAbility);
-    console.log(user.role);
 
     switch (user.role) {
       case 'manager':
@@ -47,6 +46,7 @@ export class CaslAbilityFactory {
         can(Action.Read, 'Order');
         can(Action.Update, 'Order');
         can(Action.Manage, 'Delivery');
+        can(Action.Manage, 'Image');
         break;
 
       case 'client':
@@ -58,7 +58,6 @@ export class CaslAbilityFactory {
         can(Action.Create, 'Order');
         can(Action.Read, 'Order');
         can(Action.Read, 'Delivery');
-        can(Action.Manage, 'Image');
         break;
 
       case 'delivery_person':
