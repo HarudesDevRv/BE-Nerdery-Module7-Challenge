@@ -26,6 +26,11 @@ export class ProductsResolver {
     private imageUploadService: ImageUploadService,
   ) {}
 
+  @Query(() => [Category])
+  productCategories() {
+    return this.productsService.getCategories();
+  }
+
   @Query(() => [ProductWithDetails])
   async products(
     @Args('filter', { nullable: true }) filter?: ProductFilterInput,
@@ -42,18 +47,13 @@ export class ProductsResolver {
   }
 
   @Query(() => [ManagerProduct])
-  @UseGuards(JwtAuthGuard /*, PoliciesGuard*/)
-  //@CheckPolicies((ability) => ability.can(Action.Create, 'Product'))
+  @UseGuards(JwtAuthGuard, PoliciesGuard)
+  @CheckPolicies((ability) => ability.can(Action.Create, 'Product'))
   async managerProducts(
     @CurrentUser() user: { userId: string },
     @Args('filter', { nullable: true }) filter?: ProductFilterInput,
   ): Promise<ManagerProduct[]> {
     return this.productsService.getByManagerId(user.userId, filter ?? {});
-  }
-
-  @Query(() => [Category])
-  productCategories() {
-    return this.productsService.getCategories();
   }
 
   @Mutation(() => ManagerProduct)
@@ -83,8 +83,9 @@ export class ProductsResolver {
   @CheckPolicies((ability) => ability.can(Action.Delete, 'Product'))
   async deleteProduct(
     @Args({ name: 'productId', type: () => ID }) productId: string,
+    @CurrentUser() user: { userId: string },
   ): Promise<boolean> {
-    return this.productsService.delete(productId);
+    return this.productsService.delete(productId, user.userId);
   }
 
   @Mutation(() => ProductImage)
@@ -116,11 +117,11 @@ export class ProductsResolver {
   @Mutation(() => Boolean)
   @UseGuards(JwtAuthGuard, PoliciesGuard)
   @CheckPolicies((ability) => ability.can(Action.Like, 'Product'))
-  toggleLike(
+  async toggleLike(
     @Args({ name: 'productId', type: () => ID }) productId: string,
     @Args('likeStatus') likeStatus: boolean,
     @CurrentUser() user: { userId: string },
-  ) {
+  ): Promise<boolean> {
     return this.productsService.toggleLike(productId, user.userId, likeStatus);
   }
 }

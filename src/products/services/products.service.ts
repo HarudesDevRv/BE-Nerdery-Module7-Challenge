@@ -9,6 +9,7 @@ import { UpdateProductInput } from '../dto/update-product.input';
 import { ProductFilterInput } from '../dto/product-filter.input';
 import { ProductUtilityService } from './product-utility.service';
 import { Prisma } from '@prisma/client';
+import { ManagerProductPaginationInput } from '../dto/manager-product-pagination.input';
 
 const productDetailSelect = {
   productId: true,
@@ -74,28 +75,28 @@ export class ProductsService {
     return this.productUtility.formatDetailedProduct(product);
   }
 
-  async getByManagerId(managerId: string, filter: ProductFilterInput) {
-    const categoryId = filter.category
-      ? (
-          await this.prisma.category.findUnique({
-            where: { name: filter.category },
-            select: { categoryId: true },
-          })
-        )?.categoryId
-      : undefined;
+  async getByManagerId(
+    managerId: string,
+    pagination: ManagerProductPaginationInput,
+  ) {
+    const manager = await this.prisma.user.findUnique({
+      where: { userId: managerId },
+    });
 
-    if (filter.category && categoryId === undefined) {
-      throw new NotFoundException('Category not found');
+    if (!manager) {
+      throw new NotFoundException('Manager not found');
     }
 
     const products = await this.prisma.product.findMany({
-      where: { categoryId },
+      where: { managerId },
       include: {
         images: true,
         inventories: true,
       },
-      take: filter.limit || 10,
-      skip: filter.page ? (filter.page - 1) * (filter.limit || 10) : undefined,
+      take: pagination.limit || 10,
+      skip: pagination.page
+        ? (pagination.page - 1) * (pagination.limit || 10)
+        : undefined,
     });
 
     const formattedProducts = products.map((product) =>
@@ -129,7 +130,6 @@ export class ProductsService {
     input: UpdateProductInput,
     managerId: string,
   ) {
-    // TODO: implement product update
     const product = await this.prisma.product.findUnique({
       where: { productId },
     });
@@ -153,28 +153,45 @@ export class ProductsService {
       },
     });
 
-    const formattedProduct = {
-      ...updatedProduct,
-      inventories: updatedProduct.inventories.map((inventory) => ({
-        ...inventory,
-        price: inventory.price.toNumber(),
-        salePrice: inventory.salePrice.toNumber(),
-      })),
-    };
-
-    return formattedProduct;
+    return this.productUtility.formatManagerProduct(updatedProduct);
   }
 
-  async delete(productId: string): Promise<boolean> {
-    // TODO: implement soft delete
-    return (
-      (await this.prisma.product.delete({ where: { productId } })) !== null
-    );
+  async delete(productId: string, managerId: string): Promise<boolean> {
+    const product = await this.prisma.product.findUnique({
+      where: { productId },
+    });
+
+    if (!product) {
+      throw new NotFoundException('Product not found');
+    }
+
+    if (product.managerId !== managerId) {
+      throw new ForbiddenException("Can't access this product");
+    }
+
+    await this.prisma.product.update({
+      where: { productId },
+      data: { deletedAt: Date() },
+    });
+
+    return true;
   }
 
   async toggleLike(productId: string, userId: string, isActive: boolean) {
     // TODO: implement like/unlike toggle
-    return this.prisma.userLike.upsert({
+    const product = await this.prisma.product.findUnique({
+      where: { productId },
+    });
+    if (!product) {
+      throw new NotFoundException('Product not found');
+    }
+
+    const user = await this.prisma.user.findUnique({ where: { userId } });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const likeStatus = await this.prisma.userLike.upsert({
       where: { productId_userId: { productId, userId } },
       create: {
         productId,
@@ -185,6 +202,8 @@ export class ProductsService {
         isActive,
       },
     });
+
+    return likeStatus.isActive;
   }
 
   async createImage(productId: string, url: string) {
