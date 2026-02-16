@@ -209,8 +209,8 @@ model Cart {
 model CartItem {
   cartId    String    @map("cart_id")
   productId String    @map("product_id")
-  products  Inventory @relation(fields: [productId], references: [inventoryId])
-  carts     Cart      @relation(fields: [cartId], references: [cartId])
+  product   Inventory @relation(fields: [productId], references: [inventoryId])
+  cart      Cart      @relation(fields: [cartId], references: [cartId])
   amount    Int
 
   @@id([cartId, productId])

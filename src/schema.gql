@@ -46,11 +46,26 @@ type ManagerProduct {
   inventories: [Inventory!]!
 }
 
+type CartItem {
+  productId: String!
+  productName: String!
+  amount: Int!
+  unitPrice: Float!
+  subtotal: Float!
+}
+
+type Cart {
+  cartId: ID!
+  items: [CartItem!]!
+  total: Float!
+}
+
 type Query {
   productCategories: [Category!]!
   products(filter: ProductFilterInput): [ProductWithDetails!]!
   productDetail(productId: ID!): ProductWithDetails!
   managerProducts(filter: ProductFilterInput): [ManagerProduct!]!
+  myCart: Cart!
 }
 
 input ProductFilterInput {
@@ -66,6 +81,10 @@ type Mutation {
   uploadProductImage(productId: ID!, file: Upload!): ProductImage!
   deleteProductImage(imageId: ID!): Boolean!
   toggleLike(productId: ID!, likeStatus: Boolean!): Boolean!
+  addToCart(input: AddToCartInput!): Cart!
+  updateCartItem(input: UpdateCartItemInput!): Cart!
+  removeCartItem(inventoryId: String!): Cart!
+  clearCart: Boolean!
 }
 
 input CreateProductInput {
@@ -85,3 +104,13 @@ input UpdateProductInput {
 
 """The `Upload` scalar type represents a file upload."""
 scalar Upload
+
+input AddToCartInput {
+  inventoryId: String!
+  amount: Int!
+}
+
+input UpdateCartItemInput {
+  inventoryId: String!
+  amount: Int!
+}

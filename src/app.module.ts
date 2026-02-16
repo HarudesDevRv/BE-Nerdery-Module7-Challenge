@@ -8,6 +8,7 @@ import { AuthModule } from './auth/auth.module';
 import { ProductsModule } from './products/products.module';
 import { CaslModule } from './common/casl/casl.module';
 import { ImageUploadModule } from './common/services/image-upload.module';
+import { CartModule } from './cart/cart.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { ImageUploadModule } from './common/services/image-upload.module';
     AuthModule,
     ProductsModule,
     ImageUploadModule,
+    CartModule,
   ],
 })
 export class AppModule {}
