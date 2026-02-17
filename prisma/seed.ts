@@ -492,8 +492,12 @@ async function seed() {
 
   const order = await prisma.order.create({
     data: {
-      userId: client2.userId,
+      userId: client1.userId,
       paymentId: payment.paymentId,
+      status: 'delivered',
+      subtotal: 849.99,
+      total: 849.99,
+      currency: 'USD',
     },
   });
 

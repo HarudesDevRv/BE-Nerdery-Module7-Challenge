@@ -239,9 +239,13 @@ model Payment {
 model Order {
   orderId       String               @id @default(uuid()) @map("order_id")
   userId        String               @map("user_id")
-  paymentId     String               @unique @map("payment_id")
+  paymentId     String?              @unique @map("payment_id")
   user          User                 @relation(fields: [userId], references: [userId])
-  payment       Payment              @relation(fields: [paymentId], references: [paymentId])
+  payment       Payment?             @relation(fields: [paymentId], references: [paymentId])
+  subtotal      Decimal              @map("subtotal") @db.Decimal(10, 2)
+  total         Decimal              @map("total") @db.Decimal(10, 2)
+  currency      String               @map("currency") @db.VarChar(3)
+  status        OrderStatus          @map("status")
   createdAt     DateTime             @default(now()) @map("created_at")
   updatedAt     DateTime             @updatedAt @map("updated_at")
   deletedAt     DateTime?            @map("deleted_at")
@@ -249,6 +253,15 @@ model Order {
   discountCodes OrderDiscountCodes[]
 
   @@map("orders")
+}
+
+model OrderStatusChange {
+  orderId String      @map("order_id")
+  status  OrderStatus @map("status")
+  date    DateTime    @default(now()) @map("date")
+
+  @@id([orderId, status])
+  @@map("order_status_changes")
 }
 
 model OrderProduct {
