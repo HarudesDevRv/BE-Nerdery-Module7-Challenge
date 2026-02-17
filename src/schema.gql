@@ -60,16 +60,57 @@ type Cart {
   total: Float!
 }
 
+type OrderItem {
+  inventoryId: String!
+  productName: String!
+  amount: Int!
+  price: Float!
+}
+
+type OrderPromoCode {
+  code: String!
+  discountType: DiscountType!
+  discountValue: Float!
+}
+
+enum DiscountType {
+  percentage
+  fixed
+}
+
+type Order {
+  orderId: ID!
+  paymentId: ID
+  items: [OrderItem!]!
+  subtotal: Float!
+  total: Float!
+  promoCodes: [OrderPromoCode!]
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
 type Query {
   productCategories: [Category!]!
   products(filter: ProductFilterInput): [ProductWithDetails!]!
   productDetail(productId: ID!): ProductWithDetails!
   managerProducts(filter: ProductFilterInput): [ManagerProduct!]!
   myCart: Cart!
+  myOrders(filter: OrderFilterInput): [Order!]!
+  orderDetail(orderId: ID!): Order!
 }
 
 input ProductFilterInput {
   category: String
+  page: Int = 1
+  limit: Int = 10
+}
+
+input OrderFilterInput {
   page: Int = 1
   limit: Int = 10
 }
@@ -85,6 +126,7 @@ type Mutation {
   updateCartItem(input: UpdateCartItemInput!): Cart!
   removeCartItem(inventoryId: ID!): Cart!
   clearCart: Boolean!
+  createOrder(input: CreateOrderInput!): Order!
 }
 
 input CreateProductInput {
@@ -113,4 +155,9 @@ input AddToCartInput {
 input UpdateCartItemInput {
   inventoryId: String!
   amount: Int!
+}
+
+input CreateOrderInput {
+  codes: [String!]
+  currency: String!
 }
