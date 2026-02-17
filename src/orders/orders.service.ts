@@ -5,6 +5,7 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
+import { CartService } from '../cart/services/cart.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateOrderInput } from './dto/create-order.input';
 import { OrderFilterInput } from './dto/order-filter.input';
@@ -16,6 +17,7 @@ export class OrdersService {
   constructor(
     private prisma: PrismaService,
     private orderUtils: OrderUtilsService,
+    private cartService: CartService,
   ) {}
 
   async findAll(userId: string, filter: OrderFilterInput): Promise<Order[]> {
@@ -163,6 +165,8 @@ export class OrdersService {
             : undefined,
       },
     });
+
+    await this.cartService.clearCart(userId);
 
     return this.orderUtils.formatCreatedOrder(
       newOrder,
