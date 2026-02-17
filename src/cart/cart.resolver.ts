@@ -1,6 +1,6 @@
-import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args, ID } from '@nestjs/graphql';
 import { UseGuards } from '@nestjs/common';
-import { CartService } from './cart.service';
+import { CartService } from './services/cart.service';
 import { Cart } from './models/cart.model';
 import { AddToCartInput } from './dto/add-to-cart.input';
 import { UpdateCartItemInput } from './dto/update-cart-item.input';
@@ -40,7 +40,7 @@ export class CartResolver {
   @Mutation(() => Cart)
   removeCartItem(
     @CurrentUser() user: { userId: string },
-    @Args('inventoryId') inventoryId: string,
+    @Args({ name: 'inventoryId', type: () => ID }) inventoryId: string,
   ) {
     return this.cartService.removeItem(user.userId, inventoryId);
   }

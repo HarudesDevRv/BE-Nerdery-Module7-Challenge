@@ -83,7 +83,7 @@ type Mutation {
   toggleLike(productId: ID!, likeStatus: Boolean!): Boolean!
   addToCart(input: AddToCartInput!): Cart!
   updateCartItem(input: UpdateCartItemInput!): Cart!
-  removeCartItem(inventoryId: String!): Cart!
+  removeCartItem(inventoryId: ID!): Cart!
   clearCart: Boolean!
 }
 
