@@ -30,7 +30,7 @@ type DetailedProduct = {
 };
 
 @Injectable()
-export class ProductUtilityService {
+export class ProductUtilsService {
   formatManagerProduct(product: ManagerProduct) {
     return {
       ...product,

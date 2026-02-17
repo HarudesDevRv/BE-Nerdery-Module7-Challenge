@@ -7,7 +7,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { CreateProductInput } from '../dto/create-product.input';
 import { UpdateProductInput } from '../dto/update-product.input';
 import { ProductFilterInput } from '../dto/product-filter.input';
-import { ProductUtilityService } from './product-utility.service';
+import { ProductUtilsService } from './product-utils.service';
 import { Prisma } from '@prisma/client';
 import { ManagerProductPaginationInput } from '../dto/manager-product-pagination.input';
 import { ProductImage } from '../models/product.model';
@@ -36,7 +36,7 @@ const productDetailSelect = {
 export class ProductsService {
   constructor(
     private prisma: PrismaService,
-    private productUtility: ProductUtilityService,
+    private productUtility: ProductUtilsService,
   ) {}
 
   async findAll(filter: ProductFilterInput) {
