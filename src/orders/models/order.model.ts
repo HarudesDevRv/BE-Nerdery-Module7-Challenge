@@ -12,27 +12,20 @@ registerEnumType(DiscountType, { name: 'DiscountType' });
 
 @ObjectType()
 export class OrderItem {
-  @Field()
+  @Field(() => ID)
   inventoryId: string;
-
-  @Field()
   productName: string;
-
   @Field(() => Int)
   amount: number;
-
   @Field(() => Float)
   price: number;
 }
 
 @ObjectType()
 export class OrderPromoCode {
-  @Field()
   code: string;
-
   @Field(() => DiscountType)
   discountType: DiscountType;
-
   @Field(() => Float)
   discountValue: number;
 }
@@ -41,25 +34,14 @@ export class OrderPromoCode {
 export class Order {
   @Field(() => ID)
   orderId: string;
-
-  @Field(() => ID, { nullable: true })
+  @Field(() => ID)
   paymentId?: string;
-
-  @Field(() => [OrderItem])
   items: OrderItem[];
-
   @Field(() => Float)
   subtotal: number;
-
   @Field(() => Float)
   total: number;
-
-  @Field(() => [OrderPromoCode], { nullable: true })
   promoCodes?: OrderPromoCode[];
-
-  @Field()
   createdAt: Date;
-
-  @Field()
   updatedAt: Date;
 }

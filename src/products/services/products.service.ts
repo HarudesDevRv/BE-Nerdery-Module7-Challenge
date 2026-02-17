@@ -60,9 +60,12 @@ export class ProductsService {
       skip: filter.page ? (filter.page - 1) * (filter.limit || 10) : undefined,
     });
 
-    const formattedProducts = products.map((product) =>
-      this.productUtility.formatDetailedProduct(product),
-    );
+    const formattedProducts = products.map((product) => {
+      const images = product.images.flatMap((img) =>
+        img.url != null ? [{ imageId: img.imageId, url: img.url }] : [],
+      );
+      return this.productUtility.formatDetailedProduct({ ...product, images });
+    });
 
     return formattedProducts;
   }
@@ -76,7 +79,10 @@ export class ProductsService {
     if (!product) {
       throw new NotFoundException('Product not found');
     }
-    return this.productUtility.formatDetailedProduct(product);
+    const images = product.images.flatMap((img) =>
+      img.url != null ? [{ imageId: img.imageId, url: img.url }] : [],
+    );
+    return this.productUtility.formatDetailedProduct({ ...product, images });
   }
 
   async getByManagerId(
@@ -203,8 +209,8 @@ export class ProductsService {
 
   async createImage(
     productId: string,
-    url: string | null,
-    userId: string,
+    userId: string | null,
+    url?: string,
   ): Promise<ProductImage> {
     const product = await this.prisma.deletedAtFilter.product.findUnique({
       where: { productId },

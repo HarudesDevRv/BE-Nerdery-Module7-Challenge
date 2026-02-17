@@ -1,17 +1,11 @@
-import { ObjectType, Field, ID, Float } from '@nestjs/graphql';
+import { ObjectType, Field, ID, Float, Int } from '@nestjs/graphql';
 
 @ObjectType()
 class BaseProduct {
   @Field(() => ID)
   productId: string;
-
-  @Field()
   name: string;
-
-  @Field()
   description: string;
-
-  @Field(() => [ProductImage])
   images: ProductImage[];
 }
 
@@ -19,7 +13,6 @@ class BaseProduct {
 export class Product extends BaseProduct {
   @Field(() => ID)
   categoryId: string;
-
   @Field(() => ID)
   brandId: string;
 }
@@ -28,41 +21,27 @@ export class Product extends BaseProduct {
 export class ProductImage {
   @Field(() => ID)
   imageId: string;
-
-  @Field(() => String, { nullable: true })
   url: string | null;
 }
 
 @ObjectType()
 export class ProductWithDetails extends BaseProduct {
-  @Field()
   category: string;
-
-  @Field()
   brand: string;
-
   @Field(() => Float)
   price?: number;
-
   @Field(() => Float)
   salePrice?: number;
-
-  @Field()
+  @Field(() => Int)
   stock?: number;
-
-  @Field()
+  @Field(() => Int)
   likesCount?: number;
 }
 
 @ObjectType()
 export class Category {
-  @Field()
   name: string;
-
-  @Field()
   description: string;
-
-  @Field()
   imageUrl: string;
 }
 
@@ -70,28 +49,20 @@ export class Category {
 export class Inventory {
   @Field(() => ID)
   inventoryId: string;
-
   @Field(() => ID)
   productId: string;
-
   @Field(() => ID)
   storeId: string;
-
-  @Field(() => Float, { nullable: true })
+  @Field(() => Float)
   price?: number;
-
-  @Field(() => Float, { nullable: true })
+  @Field(() => Float)
   salePrice?: number;
-
-  @Field({ nullable: true })
+  @Field(() => Int)
   stock?: number;
-
-  @Field()
   isActive: boolean;
 }
 
 @ObjectType()
 export class ManagerProduct extends Product {
-  @Field(() => [Inventory])
   inventories: Inventory[];
 }

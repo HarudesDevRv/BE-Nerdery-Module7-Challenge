@@ -3,10 +3,8 @@ import { IsUUID, IsInt, Min } from 'class-validator';
 
 @InputType()
 export class AddToCartInput {
-  @Field()
   @IsUUID()
   inventoryId: string;
-
   @Field(() => Int)
   @IsInt()
   @Min(1)

@@ -12,12 +12,12 @@ type ProductWithDetails {
   name: String!
   description: String!
   images: [ProductImage!]!
+  price: Float
+  salePrice: Float
+  stock: Int
+  likesCount: Int
   category: String!
   brand: String!
-  price: Float!
-  salePrice: Float!
-  stock: Float!
-  likesCount: Float!
 }
 
 type Category {
@@ -32,7 +32,7 @@ type Inventory {
   storeId: ID!
   price: Float
   salePrice: Float
-  stock: Float
+  stock: Int
   isActive: Boolean!
 }
 
@@ -47,30 +47,30 @@ type ManagerProduct {
 }
 
 type CartItem {
-  productId: String!
-  productName: String!
   amount: Int!
   unitPrice: Float!
   subtotal: Float!
+  productId: String!
+  productName: String!
 }
 
 type Cart {
   cartId: ID!
-  items: [CartItem!]!
   total: Float!
+  items: [CartItem!]!
 }
 
 type OrderItem {
-  inventoryId: String!
-  productName: String!
+  inventoryId: ID!
   amount: Int!
   price: Float!
+  productName: String!
 }
 
 type OrderPromoCode {
-  code: String!
   discountType: DiscountType!
   discountValue: Float!
+  code: String!
 }
 
 enum DiscountType {
@@ -81,9 +81,9 @@ enum DiscountType {
 type Order {
   orderId: ID!
   paymentId: ID
-  items: [OrderItem!]!
   subtotal: Float!
   total: Float!
+  items: [OrderItem!]!
   promoCodes: [OrderPromoCode!]
   createdAt: DateTime!
   updatedAt: DateTime!
@@ -105,9 +105,9 @@ type Query {
 }
 
 input ProductFilterInput {
-  category: String
   page: Int = 1
   limit: Int = 10
+  category: String
 }
 
 input OrderFilterInput {
@@ -130,17 +130,17 @@ type Mutation {
 }
 
 input CreateProductInput {
-  name: String!
-  description: String!
   categoryId: ID!
   brandId: ID!
+  name: String!
+  description: String!
 }
 
 input UpdateProductInput {
-  name: String
-  description: String
   categoryId: ID
   brandId: ID
+  name: String
+  description: String
   isActive: Boolean
 }
 
@@ -148,13 +148,13 @@ input UpdateProductInput {
 scalar Upload
 
 input AddToCartInput {
-  inventoryId: String!
   amount: Int!
+  inventoryId: String!
 }
 
 input UpdateCartItemInput {
-  inventoryId: String!
   amount: Int!
+  inventoryId: String!
 }
 
 input CreateOrderInput {
