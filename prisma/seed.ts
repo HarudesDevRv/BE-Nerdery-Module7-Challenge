@@ -512,6 +512,25 @@ async function seed() {
       price: 799.99,
     },
   });
+
+  await prisma.discountCode.createMany({
+    data: [
+      {
+        code: 'TESTCODE1',
+        discountValue: 10,
+        discountType: 'fixed',
+        usageLimit: 10,
+        expirationDate: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
+      },
+      {
+        code: 'TESTCODE2',
+        discountValue: 10,
+        discountType: 'percentage',
+        usageLimit: 10,
+        expirationDate: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
+      },
+    ],
+  });
 }
 
 seed()

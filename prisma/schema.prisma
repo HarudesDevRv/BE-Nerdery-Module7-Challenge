@@ -28,6 +28,11 @@ enum OrderStatus {
   delivered
 }
 
+enum DiscountType {
+  percentage
+  fixed
+}
+
 model Address {
   addressId  String    @id @default(uuid()) @map("address_id")
   address    String    @default("") @map("address") @db.VarChar(255)
@@ -232,15 +237,16 @@ model Payment {
 }
 
 model Order {
-  orderId   String         @id @default(uuid()) @map("order_id")
-  userId    String         @map("user_id")
-  paymentId String         @unique @map("payment_id")
-  user      User           @relation(fields: [userId], references: [userId])
-  payment   Payment        @relation(fields: [paymentId], references: [paymentId])
-  createdAt DateTime       @default(now()) @map("created_at")
-  updatedAt DateTime       @updatedAt @map("updated_at")
-  deletedAt DateTime?      @map("deleted_at")
-  products  OrderProduct[]
+  orderId       String               @id @default(uuid()) @map("order_id")
+  userId        String               @map("user_id")
+  paymentId     String               @unique @map("payment_id")
+  user          User                 @relation(fields: [userId], references: [userId])
+  payment       Payment              @relation(fields: [paymentId], references: [paymentId])
+  createdAt     DateTime             @default(now()) @map("created_at")
+  updatedAt     DateTime             @updatedAt @map("updated_at")
+  deletedAt     DateTime?            @map("deleted_at")
+  products      OrderProduct[]
+  discountCodes OrderDiscountCodes[]
 
   @@map("orders")
 }
@@ -255,4 +261,28 @@ model OrderProduct {
 
   @@id([orderId, inventoryId])
   @@map("order_products")
+}
+
+model DiscountCode {
+  discountCodeId String               @id @default(uuid()) @map("discount_code_id")
+  code           String               @unique @map("code")
+  discountType   DiscountType         @map("discount_type")
+  discountValue  Decimal              @map("discount_value") @db.Decimal(10, 2)
+  expirationDate DateTime             @map("expiration_date")
+  usageLimit     Int                  @map("usage_limit")
+  minAmount      Int?                 @map("min_amount")
+  orders         OrderDiscountCodes[]
+
+  @@map("discount_codes")
+}
+
+model OrderDiscountCodes {
+  orderId        String       @map("order_id")
+  discountCodeId String       @map("discount_code_id")
+  orders         Order        @relation(fields: [orderId], references: [orderId])
+  discountCodes  DiscountCode @relation(fields: [discountCodeId], references: [discountCodeId])
+  createdAt      DateTime     @default(now()) @map("created_at")
+
+  @@id([orderId, discountCodeId])
+  @@map("order_discount_codes")
 }
