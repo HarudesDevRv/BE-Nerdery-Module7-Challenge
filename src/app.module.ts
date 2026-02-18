@@ -7,9 +7,9 @@ import { PrismaModule } from './common/services/prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { ProductsModule } from './products/products.module';
 import { CaslModule } from './common/casl/casl.module';
-import { ImageUploadModule } from './common/services/s3/image-upload.module';
 import { CartModule } from './cart/cart.module';
 import { OrdersModule } from './orders/orders.module';
+import { S3Module } from './common/services/s3/s3.module';
 
 @Module({
   imports: [
@@ -22,7 +22,7 @@ import { OrdersModule } from './orders/orders.module';
     CaslModule,
     AuthModule,
     ProductsModule,
-    ImageUploadModule,
+    S3Module,
     CartModule,
     OrdersModule,
   ],

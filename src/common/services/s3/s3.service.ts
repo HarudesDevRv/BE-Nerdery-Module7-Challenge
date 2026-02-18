@@ -6,7 +6,7 @@ import * as graphqlUploadTs from 'graphql-upload-ts';
 import path from 'path';
 
 @Injectable()
-export class ImageUploadService {
+export class S3Service {
   private readonly client: S3Client;
   private readonly bucket: string;
   constructor(configService: ConfigService) {
@@ -39,6 +39,7 @@ export class ImageUploadService {
 
     const uploadedFile = await upload.done();
 
+    //TODO: Extract error logic
     if (!uploadedFile.Location) {
       throw new Error('Product image upload failed');
     }

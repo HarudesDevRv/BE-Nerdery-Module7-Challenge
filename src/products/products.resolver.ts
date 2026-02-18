@@ -14,7 +14,6 @@ import { PoliciesGuard } from '../common/casl/policies.guard';
 import { CheckPolicies } from '../common/casl/check-policies.decorator';
 import { Action } from '../common/casl/casl-ability.factory';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
-import { ImageUploadService } from 'src/common/services/s3/image-upload.service';
 import * as graphqlUploadTs from 'graphql-upload-ts';
 import {
   ProductWithDetails,
@@ -24,12 +23,13 @@ import {
   ManagerProduct,
   ManagerProductsPage,
 } from './models/manager-product.model';
+import { S3Service } from 'src/common/services/s3/s3.service';
 
 @Resolver(() => Product)
 export class ProductsResolver {
   constructor(
     private productsService: ProductsService,
-    private imageUploadService: ImageUploadService,
+    private s3Service: S3Service,
   ) {}
 
   @Query(() => [Category])
@@ -116,10 +116,7 @@ export class ProductsResolver {
       }
 
       const uploadKey = `products/${productId}/images/${databaseImage.imageId}`;
-      const imageUrl = await this.imageUploadService.UploadImage(
-        file,
-        uploadKey,
-      );
+      const imageUrl = await this.s3Service.UploadImage(file, uploadKey);
 
       const uploadedImage = await this.productsService.updateImageUrl(
         databaseImage.imageId,
@@ -163,7 +160,7 @@ export class ProductsResolver {
       deletedImage.url?.indexOf('/products') + 1,
     );
 
-    await this.imageUploadService.DeleteImage(imageUrl);
+    await this.s3Service.DeleteImage(imageUrl);
 
     return true;
   }
