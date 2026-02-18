@@ -6,7 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { CartService } from '../cart/services/cart.service';
-import { PrismaService } from '../prisma/prisma.service';
+import { PrismaService } from '../common/services/prisma/prisma.service';
 import { CreateOrderInput } from './dto/create-order.input';
 import { OrderFilterInput } from './dto/order-filter.input';
 import { Order } from './models/order.model';

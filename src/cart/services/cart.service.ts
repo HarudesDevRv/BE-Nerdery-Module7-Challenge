@@ -1,5 +1,5 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
+import { PrismaService } from '../../common/services/prisma/prisma.service';
 import { AddToCartInput } from '../dto/add-to-cart.input';
 import { UpdateCartItemInput } from '../dto/update-cart-item.input';
 import { Cart } from '../models/cart.model';
