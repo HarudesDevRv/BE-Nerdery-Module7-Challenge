@@ -1,7 +1,7 @@
-import { ObjectType, Field, ID, Float, Int } from '@nestjs/graphql';
+import { ObjectType, Field, ID } from '@nestjs/graphql';
 
 @ObjectType()
-class BaseProduct {
+export class BaseProduct {
   @Field(() => ID)
   productId: string;
   name: string;
@@ -25,44 +25,8 @@ export class ProductImage {
 }
 
 @ObjectType()
-export class ProductWithDetails extends BaseProduct {
-  category: string;
-  brand: string;
-  @Field(() => Float)
-  price?: number;
-  @Field(() => Float)
-  salePrice?: number;
-  @Field(() => Int)
-  stock?: number;
-  @Field(() => Int)
-  likesCount?: number;
-}
-
-@ObjectType()
 export class Category {
   name: string;
   description: string;
   imageUrl: string;
-}
-
-@ObjectType()
-export class Inventory {
-  @Field(() => ID)
-  inventoryId: string;
-  @Field(() => ID)
-  productId: string;
-  @Field(() => ID)
-  storeId: string;
-  @Field(() => Float)
-  price?: number;
-  @Field(() => Float)
-  salePrice?: number;
-  @Field(() => Int)
-  stock?: number;
-  isActive: boolean;
-}
-
-@ObjectType()
-export class ManagerProduct extends Product {
-  inventories: Inventory[];
 }

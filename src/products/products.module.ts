@@ -1,15 +1,15 @@
 import { Module } from '@nestjs/common';
 import { ProductsResolver } from './products.resolver';
 import { ProductsService } from './services/products.service';
-import { ImageUploadService } from 'src/common/services/image-upload.service';
-import { ProductUtilsService } from './services/product-utils.service';
+import { ImageUploadService } from 'src/common/services/s3/image-upload.service';
+import { ProductMapperService } from './services/product-mapper.service';
 
 @Module({
   providers: [
     ProductsResolver,
     ProductsService,
     ImageUploadService,
-    ProductUtilsService,
+    ProductMapperService,
   ],
   exports: [ProductsService],
 })
