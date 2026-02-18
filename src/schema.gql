@@ -7,6 +7,24 @@ type ProductImage {
   url: String
 }
 
+type Category {
+  name: String!
+  description: String!
+  imageUrl: String!
+}
+
+type PaginationInfo {
+  totalItems: Int!
+  totalPages: Int!
+  currentPage: Int!
+  hasNextPage: Boolean!
+}
+
+type ProductsPage {
+  items: [ProductWithDetails!]!
+  pagination: PaginationInfo!
+}
+
 type ProductWithDetails {
   productId: ID!
   name: String!
@@ -18,12 +36,6 @@ type ProductWithDetails {
   likesCount: Int
   category: String!
   brand: String!
-}
-
-type Category {
-  name: String!
-  description: String!
-  imageUrl: String!
 }
 
 type Inventory {
@@ -44,6 +56,11 @@ type ManagerProduct {
   categoryId: ID!
   brandId: ID!
   inventories: [Inventory!]!
+}
+
+type ManagerProductsPage {
+  items: [ManagerProduct!]!
+  pagination: PaginationInfo!
 }
 
 type CartItem {
@@ -96,9 +113,9 @@ scalar DateTime
 
 type Query {
   productCategories: [Category!]!
-  products(filter: ProductFilterInput): [ProductWithDetails!]!
+  products(filter: ProductFilterInput): ProductsPage!
   productDetail(productId: ID!): ProductWithDetails!
-  managerProducts(filter: ProductFilterInput): [ManagerProduct!]!
+  managerProducts(filter: ProductFilterInput): ManagerProductsPage!
   myCart: Cart!
   myOrders(filter: OrderFilterInput): [Order!]!
   orderDetail(orderId: ID!): Order!
@@ -107,6 +124,8 @@ type Query {
 input ProductFilterInput {
   page: Int = 1
   limit: Int = 10
+  minPrice: Float
+  maxPrice: Float
   category: String
 }
 
