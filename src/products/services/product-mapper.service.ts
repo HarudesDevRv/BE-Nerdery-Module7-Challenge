@@ -30,7 +30,7 @@ type DetailedProduct = {
 };
 
 @Injectable()
-export class ProductUtilsService {
+export class ProductMapperService {
   formatManagerProduct(product: ManagerProduct) {
     return {
       ...product,
@@ -43,13 +43,16 @@ export class ProductUtilsService {
   }
 
   formatDetailedProduct(product: DetailedProduct) {
+    const inventory = product.inventories[0];
     return {
       productId: product.productId,
       name: product.name,
       description: product.description,
       category: product.category.name,
       brand: product.brand.name,
-      ...product.inventories[0],
+      price: inventory?.price.toNumber(),
+      salePrice: inventory?.salePrice.toNumber(),
+      stock: inventory?.stock,
       images: product.images,
       likesCount: product._count.userLikes,
     };
