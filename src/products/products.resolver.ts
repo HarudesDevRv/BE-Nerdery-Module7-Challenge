@@ -118,6 +118,10 @@ export class ProductsResolver {
       const uploadKey = `products/${productId}/images/${databaseImage.imageId}`;
       const imageUrl = await this.s3Service.UploadImage(file, uploadKey);
 
+      if (!imageUrl) {
+        throw new Error('Product image upload failed');
+      }
+
       const uploadedImage = await this.productsService.updateImageUrl(
         databaseImage.imageId,
         imageUrl,

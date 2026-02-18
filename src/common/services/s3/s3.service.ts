@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { S3Client, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 import { ConfigService } from '@nestjs/config';
@@ -20,7 +20,7 @@ export class S3Service {
   async UploadImage(
     file: graphqlUploadTs.FileUpload,
     uploadKey: string,
-  ): Promise<string> {
+  ): Promise<string | undefined> {
     const stream = file.createReadStream();
 
     const extension = path.extname(file.filename);
@@ -39,11 +39,6 @@ export class S3Service {
 
     const uploadedFile = await upload.done();
 
-    //TODO: Extract error logic
-    if (!uploadedFile.Location) {
-      throw new Error('Product image upload failed');
-    }
-
     return uploadedFile.Location;
   }
 
@@ -61,7 +56,7 @@ export class S3Service {
       return true;
     } catch (error) {
       console.log(error);
-      throw new InternalServerErrorException('Could not delete file');
+      throw new Error('Could not delete file');
     }
   }
 }
