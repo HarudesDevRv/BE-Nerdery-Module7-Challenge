@@ -3,6 +3,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { graphqlUploadExpress } from 'graphql-upload-ts';
+import helmet from 'helmet';
 
 const PORT = process.env.PORT || 3000;
 async function bootstrap() {
@@ -11,6 +12,8 @@ async function bootstrap() {
   });
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
   app.use(graphqlUploadExpress());
+  app.enableCors();
+  app.use(helmet());
   app.set('query parser', 'extended');
   await app.listen(PORT ?? 3000);
 }
