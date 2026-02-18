@@ -5,13 +5,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ProductsService } from './services/products.service';
-import {
-  Category,
-  ManagerProduct,
-  Product,
-  ProductImage,
-  ProductWithDetails,
-} from './models/product.model';
+import { Category, Product, ProductImage } from './models/product.model';
 import { CreateProductInput } from './dto/create-product.input';
 import { UpdateProductInput } from './dto/update-product.input';
 import { ProductFilterInput } from './dto/product-filter.input';
@@ -20,8 +14,16 @@ import { PoliciesGuard } from '../common/casl/policies.guard';
 import { CheckPolicies } from '../common/casl/check-policies.decorator';
 import { Action } from '../common/casl/casl-ability.factory';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
-import { ImageUploadService } from 'src/common/services/image-upload.service';
+import { ImageUploadService } from 'src/common/services/s3/image-upload.service';
 import * as graphqlUploadTs from 'graphql-upload-ts';
+import {
+  ProductWithDetails,
+  ProductsPage,
+} from './models/product-detail.model';
+import {
+  ManagerProduct,
+  ManagerProductsPage,
+} from './models/manager-product.model';
 
 @Resolver(() => Product)
 export class ProductsResolver {
@@ -35,12 +37,11 @@ export class ProductsResolver {
     return this.productsService.getCategories();
   }
 
-  @Query(() => [ProductWithDetails])
+  @Query(() => ProductsPage)
   async products(
     @Args('filter', { nullable: true }) filter?: ProductFilterInput,
-  ) {
-    const products = await this.productsService.findAll(filter ?? {});
-    return products;
+  ): Promise<ProductsPage> {
+    return this.productsService.findAll(filter ?? {});
   }
 
   @Query(() => ProductWithDetails)
@@ -50,13 +51,13 @@ export class ProductsResolver {
     return this.productsService.findOne(productId);
   }
 
-  @Query(() => [ManagerProduct])
+  @Query(() => ManagerProductsPage)
   @UseGuards(JwtAuthGuard, PoliciesGuard)
   @CheckPolicies((ability) => ability.can(Action.Create, 'Product'))
   async managerProducts(
     @CurrentUser() user: { userId: string },
     @Args('filter', { nullable: true }) filter?: ProductFilterInput,
-  ): Promise<ManagerProduct[]> {
+  ): Promise<ManagerProductsPage> {
     return this.productsService.getByManagerId(user.userId, filter ?? {});
   }
 
@@ -167,6 +168,7 @@ export class ProductsResolver {
     return true;
   }
 
+  //TODO: AI Prompt and context, anti-gravity
   @Mutation(() => Boolean)
   @UseGuards(JwtAuthGuard, PoliciesGuard)
   @CheckPolicies((ability) => ability.can(Action.Like, 'Product'))

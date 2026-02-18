@@ -3,14 +3,14 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
+import { PrismaService } from '../../common/services/prisma/prisma.service';
 import { CreateProductInput } from '../dto/create-product.input';
 import { UpdateProductInput } from '../dto/update-product.input';
 import { ProductFilterInput } from '../dto/product-filter.input';
-import { ProductUtilsService } from './product-utils.service';
 import { Prisma } from '@prisma/client';
 import { ManagerProductPaginationInput } from '../dto/manager-product-pagination.input';
 import { ProductImage } from '../models/product.model';
+import { ProductMapperService } from './product-mapper.service';
 
 const productDetailSelect = {
   productId: true,
@@ -36,7 +36,7 @@ const productDetailSelect = {
 export class ProductsService {
   constructor(
     private prisma: PrismaService,
-    private productUtility: ProductUtilsService,
+    private productUtility: ProductMapperService,
   ) {}
 
   async findAll(filter: ProductFilterInput) {
@@ -53,12 +53,19 @@ export class ProductsService {
       throw new NotFoundException('Category not found');
     }
 
-    const products = await this.prisma.deletedAtFilter.product.findMany({
-      where: { categoryId, inventories: { some: {} } },
-      select: productDetailSelect,
-      take: filter.limit || 10,
-      skip: filter.page ? (filter.page - 1) * (filter.limit || 10) : undefined,
-    });
+    const where = { categoryId, inventories: { some: {} } };
+    const limit = filter.limit || 10;
+    const page = filter.page || 1;
+
+    const [products, totalItems] = await this.prisma.$transaction([
+      this.prisma.deletedAtFilter.product.findMany({
+        where,
+        select: productDetailSelect,
+        take: limit,
+        skip: (page - 1) * limit,
+      }),
+      this.prisma.deletedAtFilter.product.count({ where }),
+    ]);
 
     const formattedProducts = products.map((product) => {
       const images = product.images.flatMap((img) =>
@@ -67,7 +74,17 @@ export class ProductsService {
       return this.productUtility.formatDetailedProduct({ ...product, images });
     });
 
-    return formattedProducts;
+    const totalPages = Math.ceil(totalItems / limit);
+
+    return {
+      items: formattedProducts,
+      pagination: {
+        totalItems,
+        totalPages,
+        currentPage: page,
+        hasNextPage: page < totalPages,
+      },
+    };
   }
 
   async findOne(productId: string) {
@@ -89,23 +106,35 @@ export class ProductsService {
     managerId: string,
     pagination: ManagerProductPaginationInput,
   ) {
-    const products = await this.prisma.deletedAtFilter.product.findMany({
-      where: { managerId },
-      include: {
-        images: true,
-        inventories: true,
-      },
-      take: pagination.limit || 10,
-      skip: pagination.page
-        ? (pagination.page - 1) * (pagination.limit || 10)
-        : undefined,
-    });
+    const where = { managerId };
+    const limit = pagination.limit || 10;
+    const page = pagination.page || 1;
+
+    const [products, totalItems] = await this.prisma.$transaction([
+      this.prisma.deletedAtFilter.product.findMany({
+        where,
+        include: { images: true, inventories: true },
+        take: limit,
+        skip: (page - 1) * limit,
+      }),
+      this.prisma.deletedAtFilter.product.count({ where }),
+    ]);
 
     const formattedProducts = products.map((product) =>
       this.productUtility.formatManagerProduct(product),
     );
 
-    return formattedProducts;
+    const totalPages = Math.ceil(totalItems / limit);
+
+    return {
+      items: formattedProducts,
+      pagination: {
+        totalItems,
+        totalPages,
+        currentPage: page,
+        hasNextPage: page < totalPages,
+      },
+    };
   }
 
   async getCategories() {
