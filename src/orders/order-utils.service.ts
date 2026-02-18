@@ -46,7 +46,7 @@ export class OrderUtilsService {
   formatOrder(order: RawOrder): Order {
     return {
       orderId: order.orderId,
-      paymentId: order.paymentId ? order.paymentId : undefined,
+      paymentId: order.paymentId ?? undefined,
       items: order.products.map((item) => ({
         inventoryId: item.inventoryId,
         amount: item.amount,
