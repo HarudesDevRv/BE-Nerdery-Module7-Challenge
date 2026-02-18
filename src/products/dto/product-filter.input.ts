@@ -1,4 +1,4 @@
-import { InputType, Field, Int } from '@nestjs/graphql';
+import { InputType, Field, Int, Float } from '@nestjs/graphql';
 import { IsOptional, IsInt, Min } from 'class-validator';
 
 @InputType()
@@ -15,4 +15,11 @@ export class ProductFilterInput {
   @IsInt()
   @Min(1)
   limit?: number;
+  @Field(() => Float)
+  @IsOptional()
+  @Min(0)
+  minPrice?: number;
+  @Field(() => Float)
+  @IsOptional()
+  maxPrice?: number;
 }

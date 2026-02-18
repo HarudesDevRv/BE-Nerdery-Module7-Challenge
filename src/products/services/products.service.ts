@@ -53,26 +53,47 @@ export class ProductsService {
       throw new NotFoundException('Category not found');
     }
 
-    const where = { categoryId, inventories: { some: {} } };
+    const inventoryWhere =
+      filter.minPrice != null || filter.maxPrice != null
+        ? {
+            salePrice: {
+              gte: filter.minPrice ?? undefined,
+              lte: filter.maxPrice ?? undefined,
+            },
+          }
+        : {};
+
+    const where = { categoryId, inventories: { some: inventoryWhere } };
     const limit = filter.limit || 10;
     const page = filter.page || 1;
 
     const [products, totalItems] = await this.prisma.$transaction([
       this.prisma.deletedAtFilter.product.findMany({
         where,
-        select: productDetailSelect,
+        select: {
+          ...productDetailSelect,
+          inventories: {
+            ...productDetailSelect.inventories,
+            where: inventoryWhere,
+          },
+        },
         take: limit,
         skip: (page - 1) * limit,
       }),
       this.prisma.deletedAtFilter.product.count({ where }),
     ]);
 
-    const formattedProducts = products.map((product) => {
-      const images = product.images.flatMap((img) =>
-        img.url != null ? [{ imageId: img.imageId, url: img.url }] : [],
-      );
-      return this.productUtility.formatDetailedProduct({ ...product, images });
-    });
+    const formattedProducts = products
+      .filter((product) => product.inventories.length > 0)
+      .map((product) => {
+        const images = product.images.flatMap((img) =>
+          img.url != null ? [{ imageId: img.imageId, url: img.url }] : [],
+        );
+        return this.productUtility.formatDetailedProduct({
+          ...product,
+          images,
+        });
+      });
 
     const totalPages = Math.ceil(totalItems / limit);
 
