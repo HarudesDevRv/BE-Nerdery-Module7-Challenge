@@ -262,7 +262,7 @@ async function seed() {
 
   // --- Products ---
   const productIphone = await prisma.product.upsert({
-    where: { name_managerId: { name: 'iPhone 15', managerId: manager.userId } },
+    where: { productId: 'cbf17d71-0461-424a-91ac-09669ccb2c8b' },
     update: {},
     create: {
       managerId: manager.userId,
@@ -276,7 +276,7 @@ async function seed() {
 
   const productGalaxy = await prisma.product.upsert({
     where: {
-      name_managerId: { name: 'Galaxy S24', managerId: manager.userId },
+      productId: 'bc5f6357-629f-43e9-b80f-a2d4ac5422df',
     },
     update: {},
     create: {
@@ -291,7 +291,7 @@ async function seed() {
 
   const productAirMax = await prisma.product.upsert({
     where: {
-      name_managerId: { name: 'Air Max 90', managerId: manager.userId },
+      productId: '6ff34a63-f880-4094-b21c-ff6b364087e9',
     },
     update: {},
     create: {
@@ -307,10 +307,7 @@ async function seed() {
   //productInactive
   await prisma.product.upsert({
     where: {
-      name_managerId: {
-        name: 'Discontinued Headphones',
-        managerId: manager.userId,
-      },
+      productId: '57e9b858-4aa7-42be-a30b-8105d284427b',
     },
     update: {},
     create: {
@@ -362,8 +359,12 @@ async function seed() {
   });
 
   // --- Inventory (products in store with prices and stock) ---
-  const inventoryIphone = await prisma.inventory.create({
-    data: {
+  const inventoryIphone = await prisma.inventory.upsert({
+    where: {
+      inventoryId: 'f1484163-114c-4214-b92f-2f9c235b1699',
+    },
+    update: {},
+    create: {
       storeId: store.storeId,
       productId: productIphone.productId,
       price: 999.99,
@@ -373,8 +374,12 @@ async function seed() {
     },
   });
 
-  const inventoryGalaxy = await prisma.inventory.create({
-    data: {
+  const inventoryGalaxy = await prisma.inventory.upsert({
+    where: {
+      inventoryId: '2f7a61fc-df1f-404e-bcfa-c2c1a679a561',
+    },
+    update: {},
+    create: {
       storeId: store.storeId,
       productId: productGalaxy.productId,
       price: 849.99,
@@ -384,8 +389,12 @@ async function seed() {
     },
   });
 
-  const inventoryAirMax = await prisma.inventory.create({
-    data: {
+  const inventoryAirMax = await prisma.inventory.upsert({
+    where: {
+      inventoryId: '44956092-ef12-49ff-bea0-10ccb0bf8e4d',
+    },
+    update: {},
+    create: {
       storeId: store.storeId,
       productId: productAirMax.productId,
       price: 130.0,
@@ -481,17 +490,21 @@ async function seed() {
   });
 
   // --- Payment + Order + OrderProducts (for client2) ---
-  const payment = await prisma.payment.create({
-    data: {
+  const payment = await prisma.payment.upsert({
+    where: { paymentId: '5fc24181-1d4f-43ac-a41c-552e45f6e8ec' },
+    create: {
       amount: 849.99,
       currency: 'USD',
       paymentMethod: 'credit_card',
       status: 'completed',
     },
+    update: {},
   });
 
-  const order = await prisma.order.create({
-    data: {
+  const order = await prisma.order.upsert({
+    where: { orderId: '3f79767c-6945-4d2c-8aba-116d7afc6116' },
+    update: {},
+    create: {
       userId: client1.userId,
       paymentId: payment.paymentId,
       status: 'delivered',

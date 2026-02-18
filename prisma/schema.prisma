@@ -284,6 +284,7 @@ model DiscountCode {
   expirationDate DateTime             @map("expiration_date")
   usageLimit     Int                  @map("usage_limit")
   minAmount      Int?                 @map("min_amount")
+  isActive       Boolean              @default(true) @map("is_active")
   orders         OrderDiscountCodes[]
 
   @@map("discount_codes")
