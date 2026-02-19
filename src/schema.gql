@@ -111,6 +111,19 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
+type PromoCode {
+  discountCodeId: ID!
+  discountType: DiscountType!
+  discountValue: Float!
+  usageLimit: Int!
+  minAmount: Int
+  code: String!
+  expirationDate: DateTime!
+  isActive: Boolean!
+  stripeCouponId: String
+  stripePromotionCodeId: String
+}
+
 type Query {
   productCategories: [Category!]!
   products(filter: ProductFilterInput): ProductsPage!
@@ -135,17 +148,20 @@ input OrderFilterInput {
 }
 
 type Mutation {
+  toggleLike(productId: ID!, likeStatus: Boolean!): Boolean!
   createProduct(input: CreateProductInput!): ManagerProduct!
   updateProduct(productId: ID!, input: UpdateProductInput!): ManagerProduct!
   deleteProduct(productId: ID!): Boolean!
   uploadProductImage(productId: ID!, file: Upload!): ProductImage!
   deleteProductImage(imageId: ID!): Boolean!
-  toggleLike(productId: ID!, likeStatus: Boolean!): Boolean!
   addToCart(input: AddToCartInput!): Cart!
   updateCartItem(input: UpdateCartItemInput!): Cart!
   removeCartItem(inventoryId: ID!): Cart!
   clearCart: Boolean!
   createOrder(input: CreateOrderInput!): Order!
+  createPromoCode(input: CreatePromoCodeInput!): PromoCode!
+  updatePromoCode(id: String!, input: UpdatePromoCodeInput!): PromoCode!
+  disablePromoCode(id: String!): PromoCode!
 }
 
 input CreateProductInput {
@@ -179,4 +195,20 @@ input UpdateCartItemInput {
 input CreateOrderInput {
   codes: [String!]
   currency: String!
+}
+
+input CreatePromoCodeInput {
+  discountType: DiscountType!
+  discountValue: Float!
+  usageLimit: Int!
+  minAmount: Int
+  code: String!
+  expirationDate: DateTime!
+}
+
+input UpdatePromoCodeInput {
+  usageLimit: Int
+  minAmount: Int
+  expirationDate: DateTime
+  isActive: Boolean
 }

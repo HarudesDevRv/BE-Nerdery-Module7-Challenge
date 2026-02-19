@@ -127,28 +127,22 @@ export class ProductsService {
     managerId: string,
     pagination: ManagerProductPaginationInput,
   ) {
-    const where = { managerId };
     const limit = pagination.limit || 10;
     const page = pagination.page || 1;
 
     const [products, totalItems] = await this.prisma.$transaction([
       this.prisma.deletedAtFilter.product.findMany({
-        where,
-        include: { images: true, inventories: true },
+        where: { managerId },
         take: limit,
         skip: (page - 1) * limit,
       }),
-      this.prisma.deletedAtFilter.product.count({ where }),
+      this.prisma.deletedAtFilter.product.count({ where: { managerId } }),
     ]);
-
-    const formattedProducts = products.map((product) =>
-      this.productUtility.formatManagerProduct(product),
-    );
 
     const totalPages = Math.ceil(totalItems / limit);
 
     return {
-      items: formattedProducts,
+      items: products,
       pagination: {
         totalItems,
         totalPages,
@@ -196,16 +190,12 @@ export class ProductsService {
 
     const updatedProduct = await this.prisma.deletedAtFilter.product.update({
       where: { productId },
-      include: {
-        images: true,
-        inventories: true,
-      },
       data: {
         ...input,
       },
     });
 
-    return this.productUtility.formatManagerProduct(updatedProduct);
+    return updatedProduct;
   }
 
   async delete(productId: string, managerId: string): Promise<boolean> {
@@ -281,7 +271,7 @@ export class ProductsService {
       },
     });
 
-    return newImage;
+    return this.productUtility.formatProductImage(newImage);
   }
 
   async updateImageUrl(
@@ -302,12 +292,12 @@ export class ProductsService {
       throw new ForbiddenException("Can't access this product");
     }
 
-    const updatedImage = this.prisma.image.update({
+    const updatedImage = await this.prisma.image.update({
       where: { imageId },
       data: { url },
     });
 
-    return updatedImage;
+    return this.productUtility.formatProductImage(updatedImage);
   }
 
   async deleteImage(imageId: string, userId: string): Promise<ProductImage> {
@@ -329,6 +319,6 @@ export class ProductsService {
       data: { deletedAt: new Date() },
     });
 
-    return deletedImage;
+    return this.productUtility.formatProductImage(deletedImage);
   }
 }

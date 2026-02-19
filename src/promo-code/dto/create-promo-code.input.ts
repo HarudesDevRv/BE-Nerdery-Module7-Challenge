@@ -21,6 +21,7 @@ export class CreatePromoCodeInput {
   @MinLength(3)
   @MaxLength(20)
   code: string;
+  @Field(() => DiscountType)
   @IsEnum(DiscountType)
   discountType: DiscountType;
   @Field(() => Float)

@@ -21,7 +21,7 @@ export class Product extends BaseProduct {
 export class ProductImage {
   @Field(() => ID)
   imageId: string;
-  url: string | null;
+  url?: string;
 }
 
 @ObjectType()

@@ -13,13 +13,27 @@ import { S3Module } from './common/services/s3/s3.module';
 import { StripeModule } from './common/services/stripe/stripe.module';
 import { PaymentModule } from './payment/payment.module';
 import { PromoCodeModule } from './promo-code/promo-code.module';
+import { ProductImageLoader } from './products/loaders/product-image.loader';
+import { ProductInventoryLoader } from './products/loaders/product-inventory.loader';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
-    GraphQLModule.forRoot<ApolloDriverConfig>({
+    GraphQLModule.forRootAsync<ApolloDriverConfig>({
+      imports: [ProductsModule],
+      inject: [ProductImageLoader, ProductInventoryLoader],
       driver: ApolloDriver,
-      autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
+      useFactory: (
+        imageLoader: ProductImageLoader,
+        inventoryLoader: ProductInventoryLoader,
+      ) => ({
+        driver: ApolloDriver,
+        autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
+        context: () => ({
+          imagesLoader: imageLoader.createLoader(),
+          inventoriesLoader: inventoryLoader.createLoader(),
+        }),
+      }),
     }),
     PrismaModule,
     CaslModule,
