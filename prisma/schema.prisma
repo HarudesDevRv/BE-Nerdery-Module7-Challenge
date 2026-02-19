@@ -223,10 +223,10 @@ model CartItem {
 }
 
 model Payment {
-  paymentId     String    @id @default(uuid()) @map("payment_id")
-  amount        Decimal   @db.Decimal(10, 2)
+  paymentId     String    @id @map("payment_id")
+  amount        Int
   currency      String    @db.VarChar(3)
-  paymentMethod String    @map("payment_method") @db.VarChar(50)
+  paymentMethod String?   @map("payment_method") @db.VarChar(50)
   status        String    @db.VarChar(30)
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
@@ -277,15 +277,17 @@ model OrderProduct {
 }
 
 model DiscountCode {
-  discountCodeId String               @id @default(uuid()) @map("discount_code_id")
-  code           String               @unique @map("code")
-  discountType   DiscountType         @map("discount_type")
-  discountValue  Decimal              @map("discount_value") @db.Decimal(10, 2)
-  expirationDate DateTime             @map("expiration_date")
-  usageLimit     Int                  @map("usage_limit")
-  minAmount      Int?                 @map("min_amount")
-  isActive       Boolean              @default(true) @map("is_active")
-  orders         OrderDiscountCodes[]
+  discountCodeId        String               @id @default(uuid()) @map("discount_code_id")
+  code                  String               @unique @map("code")
+  discountType          DiscountType         @map("discount_type")
+  discountValue         Decimal              @map("discount_value") @db.Decimal(10, 2)
+  expirationDate        DateTime             @map("expiration_date")
+  usageLimit            Int                  @map("usage_limit")
+  minAmount             Int?                 @map("min_amount")
+  isActive              Boolean              @default(true) @map("is_active")
+  stripeCouponId        String?              @map("stripe_coupon_id")
+  stripePromotionCodeId String?              @map("stripe_promotion_code_id")
+  orders                OrderDiscountCodes[]
 
   @@map("discount_codes")
 }

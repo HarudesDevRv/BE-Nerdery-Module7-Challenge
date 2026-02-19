@@ -175,9 +175,10 @@ async function seed() {
 
   // --- Categories ---
   const categoryElectronics = await prisma.category.upsert({
-    where: { name: 'Electronics' },
+    where: { categoryId: 'ae5088de-cf6c-4a27-a3bc-23cf444594b2' },
     update: {},
     create: {
+      categoryId: 'ae5088de-cf6c-4a27-a3bc-23cf444594b2',
       name: 'Electronics',
       description: 'Electronic devices and gadgets',
       imageUrl: 'https://placehold.co/400x300?text=Electronics',
@@ -186,9 +187,10 @@ async function seed() {
   });
 
   const categoryClothing = await prisma.category.upsert({
-    where: { name: 'Clothing' },
+    where: { categoryId: '7e287769-b337-42d6-92a0-a49fe85e16da' },
     update: {},
     create: {
+      categoryId: '7e287769-b337-42d6-92a0-a49fe85e16da',
       name: 'Clothing',
       description: 'Apparel and fashion items',
       imageUrl: 'https://placehold.co/400x300?text=Clothing',
@@ -198,9 +200,10 @@ async function seed() {
 
   //categoryBooks
   await prisma.category.upsert({
-    where: { name: 'Books' },
+    where: { categoryId: 'b7c9158b-e340-47f4-bc99-6749992ab1f4' },
     update: {},
     create: {
+      categoryId: 'b7c9158b-e340-47f4-bc99-6749992ab1f4',
       name: 'Books',
       description: 'Physical and digital books',
       imageUrl: 'https://placehold.co/400x300?text=Books',
@@ -210,9 +213,10 @@ async function seed() {
 
   // --- Brands ---
   const brandApple = await prisma.brand.upsert({
-    where: { name: 'Apple' },
+    where: { brandId: '34cc3fa2-e202-4d0b-9b38-a77cb5d7e783' },
     update: {},
     create: {
+      brandId: '34cc3fa2-e202-4d0b-9b38-a77cb5d7e783',
       name: 'Apple',
       description: 'Technology company known for premium devices',
       imageUrl: 'https://placehold.co/200x200?text=Apple',
@@ -221,9 +225,10 @@ async function seed() {
   });
 
   const brandNike = await prisma.brand.upsert({
-    where: { name: 'Nike' },
+    where: { brandId: '27741988-6bc3-4690-8368-a88eeaf68bd5' },
     update: {},
     create: {
+      brandId: '27741988-6bc3-4690-8368-a88eeaf68bd5',
       name: 'Nike',
       description: 'Athletic footwear and apparel',
       imageUrl: 'https://placehold.co/200x200?text=Nike',
@@ -232,9 +237,10 @@ async function seed() {
   });
 
   const brandSamsung = await prisma.brand.upsert({
-    where: { name: 'Samsung' },
+    where: { brandId: 'd5312739-0efe-4003-9911-a9b6e1fc88dd' },
     update: {},
     create: {
+      brandId: 'd5312739-0efe-4003-9911-a9b6e1fc88dd',
       name: 'Samsung',
       description: 'Global electronics manufacturer',
       imageUrl: 'https://placehold.co/200x200?text=Samsung',
@@ -265,6 +271,7 @@ async function seed() {
     where: { productId: 'cbf17d71-0461-424a-91ac-09669ccb2c8b' },
     update: {},
     create: {
+      productId: 'cbf17d71-0461-424a-91ac-09669ccb2c8b',
       managerId: manager.userId,
       name: 'iPhone 15',
       description: 'Latest Apple smartphone with A17 chip',
@@ -280,6 +287,7 @@ async function seed() {
     },
     update: {},
     create: {
+      productId: 'bc5f6357-629f-43e9-b80f-a2d4ac5422df',
       managerId: manager.userId,
       name: 'Galaxy S24',
       description: 'Samsung flagship smartphone with AI features',
@@ -295,6 +303,7 @@ async function seed() {
     },
     update: {},
     create: {
+      productId: '6ff34a63-f880-4094-b21c-ff6b364087e9',
       managerId: manager.userId,
       name: 'Air Max 90',
       description: 'Classic Nike running shoes',
@@ -311,6 +320,7 @@ async function seed() {
     },
     update: {},
     create: {
+      productId: '57e9b858-4aa7-42be-a30b-8105d284427b',
       managerId: manager.userId,
       name: 'Discontinued Headphones',
       description: 'No longer available product',
@@ -365,6 +375,7 @@ async function seed() {
     },
     update: {},
     create: {
+      inventoryId: 'f1484163-114c-4214-b92f-2f9c235b1699',
       storeId: store.storeId,
       productId: productIphone.productId,
       price: 999.99,
@@ -380,6 +391,7 @@ async function seed() {
     },
     update: {},
     create: {
+      inventoryId: '2f7a61fc-df1f-404e-bcfa-c2c1a679a561',
       storeId: store.storeId,
       productId: productGalaxy.productId,
       price: 849.99,
@@ -395,6 +407,7 @@ async function seed() {
     },
     update: {},
     create: {
+      inventoryId: '44956092-ef12-49ff-bea0-10ccb0bf8e4d',
       storeId: store.storeId,
       productId: productAirMax.productId,
       price: 130.0,
@@ -493,6 +506,7 @@ async function seed() {
   const payment = await prisma.payment.upsert({
     where: { paymentId: '5fc24181-1d4f-43ac-a41c-552e45f6e8ec' },
     create: {
+      paymentId: '5fc24181-1d4f-43ac-a41c-552e45f6e8ec',
       amount: 849.99,
       currency: 'USD',
       paymentMethod: 'credit_card',
@@ -530,23 +544,30 @@ async function seed() {
     },
   });
 
-  await prisma.discountCode.createMany({
-    data: [
-      {
-        code: 'TESTCODE1',
-        discountValue: 10,
-        discountType: 'fixed',
-        usageLimit: 10,
-        expirationDate: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
-      },
-      {
-        code: 'TESTCODE2',
-        discountValue: 10,
-        discountType: 'percentage',
-        usageLimit: 10,
-        expirationDate: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
-      },
-    ],
+  await prisma.discountCode.upsert({
+    where: { discountCodeId: '74a72800-1939-4ef9-9bf0-2b401959ddfa' },
+    create: {
+      discountCodeId: '74a72800-1939-4ef9-9bf0-2b401959ddfa',
+      code: 'TESTCODE1',
+      discountValue: 10,
+      discountType: 'fixed',
+      usageLimit: 10,
+      expirationDate: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
+    },
+    update: {},
+  });
+
+  await prisma.discountCode.upsert({
+    where: { discountCodeId: 'ebbacbd3-7ff9-42e0-91b6-d77b664c2289' },
+    create: {
+      discountCodeId: 'ebbacbd3-7ff9-42e0-91b6-d77b664c2289',
+      code: 'TESTCODE2',
+      discountValue: 10,
+      discountType: 'percentage',
+      usageLimit: 10,
+      expirationDate: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
+    },
+    update: {},
   });
 }
 
