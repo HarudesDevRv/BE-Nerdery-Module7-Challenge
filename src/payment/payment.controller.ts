@@ -1,30 +1,22 @@
-import {
-  Body,
-  Controller,
-  // Headers,
-  Post,
-  // RawBody,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Post, UseGuards } from '@nestjs/common';
 import { PaymentService } from './payment.service';
-import { CreatePaymentIntentDto } from './dto/create-payment.dto';
+import { CreatePaymentIntentDto } from './dto/req/create-payment-intent.dto';
+import { CreateCheckoutSessionDto } from './dto/req/create-checkout-session.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 
 @Controller('payments')
 export class PaymentController {
   constructor(private paymentService: PaymentService) {}
 
-  @Post('create-intent')
+  @Post('payment-intent')
   @UseGuards(JwtAuthGuard)
   createPaymentIntent(@Body() dto: CreatePaymentIntentDto) {
     return this.paymentService.createPaymentIntent(dto);
   }
 
-  // @Post('webhook')
-  // handleWebhook(
-  //   @RawBody() payload: Buffer,
-  //   @Headers('stripe-signature') signature: string,
-  // ) {
-  //   return this.paymentService.handleWebhook(payload, signature);
-  // }
+  @Post('checkout-session')
+  @UseGuards(JwtAuthGuard)
+  createCheckoutSession(@Body() dto: CreateCheckoutSessionDto) {
+    return this.paymentService.createCheckoutSession(dto);
+  }
 }
