@@ -23,16 +23,14 @@ export class StripeService {
     );
   }
 
-  async createCheckoutSession(
-    items: Price[],
-  ): Promise<Stripe.Checkout.Session> {
+  async createCheckoutSession(items: Price[]) {
     try {
       const session = await this.stripe.checkout.sessions.create({
         success_url: 'https://example.com/success',
         line_items: items.map((item) => ({ price_data: item })),
         mode: 'payment',
       });
-      return session;
+      return session.url;
     } catch (error) {
       if (error instanceof Error) {
         this.logger.error('Failed to create PaymentIntent', error.stack);
@@ -42,10 +40,7 @@ export class StripeService {
     }
   }
 
-  async createPaymentIntent(
-    amount: number,
-    currency: string,
-  ): Promise<Stripe.PaymentIntent> {
+  async createPaymentIntent(amount: number, currency: string) {
     try {
       const paymentIntent = await this.stripe.paymentIntents.create({
         amount,
@@ -54,7 +49,10 @@ export class StripeService {
       this.logger.log(
         `PaymentIntent created successfully with amount: ${amount} ${currency}`,
       );
-      return paymentIntent;
+      return {
+        clientSecret: paymentIntent.client_secret,
+        paymentIntentId: paymentIntent.id,
+      };
     } catch (error) {
       if (error instanceof Error) {
         this.logger.error('Failed to create PaymentIntent', error.stack);

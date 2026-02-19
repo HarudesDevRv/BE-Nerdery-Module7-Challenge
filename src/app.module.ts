@@ -11,6 +11,7 @@ import { CartModule } from './cart/cart.module';
 import { OrdersModule } from './orders/orders.module';
 import { S3Module } from './common/services/s3/s3.module';
 import { StripeModule } from './common/services/stripe/stripe.module';
+import { PaymentModule } from './payment/payment.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { StripeModule } from './common/services/stripe/stripe.module';
     CartModule,
     OrdersModule,
     StripeModule,
+    PaymentModule,
   ],
 })
 export class AppModule {}

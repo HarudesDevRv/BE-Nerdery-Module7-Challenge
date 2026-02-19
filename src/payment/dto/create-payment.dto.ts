@@ -1,6 +1,6 @@
 import { IsInt, IsString, IsPositive, Length } from 'class-validator';
 
-export class CreatePaymentDto {
+export class CreatePaymentIntentDto {
   @IsString()
   orderId: string;
 
