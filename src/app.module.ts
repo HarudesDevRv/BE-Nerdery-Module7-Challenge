@@ -10,6 +10,7 @@ import { CaslModule } from './common/casl/casl.module';
 import { CartModule } from './cart/cart.module';
 import { OrdersModule } from './orders/orders.module';
 import { S3Module } from './common/services/s3/s3.module';
+import { StripeModule } from './common/services/stripe/stripe.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { S3Module } from './common/services/s3/s3.module';
     S3Module,
     CartModule,
     OrdersModule,
+    StripeModule,
   ],
 })
 export class AppModule {}
