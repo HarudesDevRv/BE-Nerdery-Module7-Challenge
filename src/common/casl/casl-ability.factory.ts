@@ -24,6 +24,7 @@ export type Subject =
   | 'Inventory'
   | 'User'
   | 'Image'
+  | 'DiscountCode'
   | 'all';
 
 export type AppAbility = MongoAbility<[Action, Subject]>;
@@ -47,6 +48,7 @@ export class CaslAbilityFactory {
         can(Action.Update, 'Order');
         can(Action.Manage, 'Delivery');
         can(Action.Manage, 'Image');
+        can(Action.Manage, 'DiscountCode');
         break;
 
       case 'client':
