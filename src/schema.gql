@@ -129,9 +129,9 @@ type Query {
   products(filter: ProductFilterInput): ProductsPage!
   productDetail(productId: ID!): ProductWithDetails!
   managerProducts(filter: ProductFilterInput): ManagerProductsPage!
-  myCart: Cart!
   myOrders(filter: OrderFilterInput): [Order!]!
   orderDetail(orderId: ID!): Order!
+  myCart: Cart!
 }
 
 input ProductFilterInput {
@@ -154,11 +154,11 @@ type Mutation {
   deleteProduct(productId: ID!): Boolean!
   uploadProductImage(productId: ID!, file: Upload!): ProductImage!
   deleteProductImage(imageId: ID!): Boolean!
+  createOrder(input: CreateOrderInput!): Order!
   addToCart(input: AddToCartInput!): Cart!
   updateCartItem(input: UpdateCartItemInput!): Cart!
   removeCartItem(inventoryId: ID!): Cart!
   clearCart: Boolean!
-  createOrder(input: CreateOrderInput!): Order!
   createPromoCode(input: CreatePromoCodeInput!): PromoCode!
   updatePromoCode(id: String!, input: UpdatePromoCodeInput!): PromoCode!
   disablePromoCode(id: String!): PromoCode!
@@ -182,6 +182,11 @@ input UpdateProductInput {
 """The `Upload` scalar type represents a file upload."""
 scalar Upload
 
+input CreateOrderInput {
+  codes: [String!]
+  currency: String!
+}
+
 input AddToCartInput {
   amount: Int!
   inventoryId: String!
@@ -190,11 +195,6 @@ input AddToCartInput {
 input UpdateCartItemInput {
   amount: Int!
   inventoryId: String!
-}
-
-input CreateOrderInput {
-  codes: [String!]
-  currency: String!
 }
 
 input CreatePromoCodeInput {

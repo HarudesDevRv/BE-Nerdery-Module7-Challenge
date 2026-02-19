@@ -9,7 +9,6 @@ import { CartService } from '../cart/services/cart.service';
 import { PrismaService } from '../common/services/prisma/prisma.service';
 import { CreateOrderInput } from './dto/create-order.input';
 import { OrderFilterInput } from './dto/order-filter.input';
-import { Order } from './models/order.model';
 import { OrderUtilsService } from './order-utils.service';
 
 @Injectable()
@@ -20,23 +19,11 @@ export class OrdersService {
     private cartService: CartService,
   ) {}
 
-  async findAll(userId: string, filter: OrderFilterInput): Promise<Order[]> {
+  async findAll(userId: string, filter: OrderFilterInput) {
     const take = filter.limit || 10;
     const skip = ((filter.page || 1) - 1) * take;
     const orders = await this.prisma.order.findMany({
       where: { userId },
-      include: {
-        products: {
-          include: { products: { include: { product: true } } },
-        },
-        discountCodes: {
-          include: {
-            discountCodes: {
-              select: { discountType: true, discountValue: true, code: true },
-            },
-          },
-        },
-      },
       skip,
       take,
     });
@@ -44,21 +31,9 @@ export class OrdersService {
     return orders.map((order) => this.orderUtils.formatOrder(order));
   }
 
-  async findOne(orderId: string, userId: string): Promise<Order> {
+  async findOne(orderId: string, userId: string) {
     const order = await this.prisma.order.findUnique({
       where: { orderId },
-      include: {
-        products: {
-          include: { products: { include: { product: true } } },
-        },
-        discountCodes: {
-          include: {
-            discountCodes: {
-              select: { discountType: true, discountValue: true, code: true },
-            },
-          },
-        },
-      },
     });
 
     if (!order) {
@@ -72,7 +47,7 @@ export class OrdersService {
     return this.orderUtils.formatOrder(order);
   }
 
-  async create(userId: string, input: CreateOrderInput): Promise<Order> {
+  async create(userId: string, input: CreateOrderInput) {
     const cart = await this.prisma.cart.findUnique({
       where: { userId },
       include: {
@@ -153,26 +128,11 @@ export class OrdersService {
         subtotal,
         total,
         currency: input.currency,
-        discountCodes:
-          codes.length > 0
-            ? {
-                createMany: {
-                  data: codes.map((code) => ({
-                    discountCodeId: code.discountCodeId,
-                  })),
-                },
-              }
-            : undefined,
       },
     });
 
     await this.cartService.clearCart(userId);
 
-    return this.orderUtils.formatCreatedOrder(
-      newOrder,
-      cart.products,
-      subtotal,
-      total,
-    );
+    return this.orderUtils.formatCreatedOrder(newOrder, subtotal, total);
   }
 }

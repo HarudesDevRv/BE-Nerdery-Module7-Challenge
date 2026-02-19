@@ -15,23 +15,34 @@ import { PaymentModule } from './payment/payment.module';
 import { PromoCodeModule } from './promo-code/promo-code.module';
 import { ProductImageLoader } from './products/loaders/product-image.loader';
 import { ProductInventoryLoader } from './products/loaders/product-inventory.loader';
+import { OrderItemsLoader } from './orders/loaders/order-items.loader';
+import { OrderPromoCodesLoader } from './orders/loaders/order-promo-codes.loader';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     GraphQLModule.forRootAsync<ApolloDriverConfig>({
-      imports: [ProductsModule],
-      inject: [ProductImageLoader, ProductInventoryLoader],
+      imports: [ProductsModule, OrdersModule],
+      inject: [
+        ProductImageLoader,
+        ProductInventoryLoader,
+        OrderItemsLoader,
+        OrderPromoCodesLoader,
+      ],
       driver: ApolloDriver,
       useFactory: (
         imageLoader: ProductImageLoader,
         inventoryLoader: ProductInventoryLoader,
+        orderItemLoader: OrderItemsLoader,
+        orderPromoCodeLoader: OrderPromoCodesLoader,
       ) => ({
         driver: ApolloDriver,
         autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
         context: () => ({
           imagesLoader: imageLoader.createLoader(),
           inventoriesLoader: inventoryLoader.createLoader(),
+          orderItemsLoader: orderItemLoader.createLoader(),
+          orderPromoCodesLoader: orderPromoCodeLoader.createLoader(),
         }),
       }),
     }),
