@@ -5,6 +5,7 @@ import {
   NotificationsProcessor,
   PasswordResetProcessor,
 } from './notifications.processor';
+import { MailerService } from './mailer.service';
 import {
   LOW_STOCK_QUEUE,
   PASSWORD_RESET_QUEUE,
@@ -18,6 +19,7 @@ export { LOW_STOCK_QUEUE, PASSWORD_RESET_QUEUE };
     BullModule.registerQueue({ name: PASSWORD_RESET_QUEUE }),
   ],
   providers: [
+    MailerService,
     NotificationsProducer,
     NotificationsProcessor,
     PasswordResetProcessor,
