@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { CartService } from '../cart/services/cart.service';
 import { PrismaService } from '../common/services/prisma/prisma.service';
+import { CreateGuestOrderInput } from './dto/create-guest-order.input';
 import { CreateOrderInput } from './dto/create-order.input';
 import { CreateSingleItemOrderInput } from './dto/create-single-item-order.input';
 import { OrderFilterInput } from './dto/order-filter.input';
@@ -19,6 +20,7 @@ export class OrdersService {
     private orderUtils: OrderUtilsService,
     private cartService: CartService,
   ) {}
+  //TODO: Check the order creation functions to not work with promo codes
 
   async findAllByUser(userId: string, filter: OrderFilterInput) {
     const take = filter.limit || 10;
@@ -263,5 +265,40 @@ export class OrdersService {
     });
 
     return this.orderUtils.formatCreatedOrder(newOrder, subtotal, total);
+  }
+
+  async createGuestOrder(input: CreateGuestOrderInput) {
+    const inventory = await this.prisma.deletedAtFilter.inventory.findUnique({
+      where: { inventoryId: input.inventoryId },
+    });
+
+    if (!inventory || !inventory.isActive) {
+      throw new NotFoundException('Inventory item not found');
+    }
+
+    if (inventory.stock < 1) {
+      throw new BadRequestException('Inventory item is out of stock');
+    }
+
+    const subtotal = inventory.salePrice.toNumber();
+
+    const newOrder = await this.prisma.order.create({
+      data: {
+        guestEmail: input.email,
+        status: 'pending',
+        products: {
+          create: {
+            inventoryId: inventory.inventoryId,
+            amount: 1,
+            price: inventory.price.toNumber(),
+          },
+        },
+        subtotal,
+        total: subtotal,
+        currency: input.currency,
+      },
+    });
+
+    return this.orderUtils.formatCreatedOrder(newOrder, subtotal, subtotal);
   }
 }

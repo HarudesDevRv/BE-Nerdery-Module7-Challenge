@@ -238,9 +238,10 @@ model Payment {
 
 model Order {
   orderId       String               @id @default(uuid()) @map("order_id")
-  userId        String               @map("user_id")
+  userId        String?              @map("user_id")
+  guestEmail    String?              @map("guest_email") @db.VarChar(255)
   paymentId     String?              @unique @map("payment_id")
-  user          User                 @relation(fields: [userId], references: [userId])
+  user          User?                @relation(fields: [userId], references: [userId])
   payment       Payment?             @relation(fields: [paymentId], references: [paymentId])
   subtotal      Decimal              @map("subtotal") @db.Decimal(10, 2)
   total         Decimal              @map("total") @db.Decimal(10, 2)

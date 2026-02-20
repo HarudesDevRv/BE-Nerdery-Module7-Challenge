@@ -12,6 +12,7 @@ type RawOrder = {
 
 type CreatedOrder = {
   orderId: string;
+  guestEmail?: string | null;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -32,6 +33,7 @@ export class OrderUtilsService {
   formatCreatedOrder(order: CreatedOrder, subtotal: number, total: number) {
     return {
       orderId: order.orderId,
+      ...(order.guestEmail && { guestEmail: order.guestEmail }),
       subtotal,
       total,
       createdAt: order.createdAt,

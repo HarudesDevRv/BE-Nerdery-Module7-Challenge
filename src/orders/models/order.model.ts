@@ -38,6 +38,8 @@ export class Order {
   orderId: string;
   @Field(() => ID)
   paymentId?: string;
+  @Field({ nullable: true })
+  guestEmail?: string;
   items: OrderItem[];
   @Field(() => Float)
   subtotal: number;
