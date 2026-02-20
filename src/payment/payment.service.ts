@@ -1,4 +1,8 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { PrismaService } from '../common/services/prisma/prisma.service';
 import { CreatePaymentIntentDto } from './dto/req/create-payment-intent.dto';
@@ -6,9 +10,12 @@ import { CreateCheckoutSessionDto } from './dto/req/create-checkout-session.dto'
 import { PaymentIntentResponseDto } from './dto/res/payment-intent-response.dto';
 import { CheckoutSessionResponseDto } from './dto/res/checkout-session-response.dto';
 import { StripeService } from 'src/common/services/stripe/stripe.service';
+import Stripe from 'stripe';
 
 @Injectable()
 export class PaymentService {
+  private readonly logger = new Logger(StripeService.name);
+
   constructor(
     private prisma: PrismaService,
     private stripe: StripeService,
@@ -73,5 +80,42 @@ export class PaymentService {
     return plainToInstance(CheckoutSessionResponseDto, checkoutSession, {
       excludeExtraneousValues: true,
     });
+  }
+
+  async handleWebhook(event: Stripe.Event): Promise<void> {
+    switch (event.type) {
+      case 'payment_intent.succeeded': {
+        const paymentIntent = event.data.object;
+        await this.prisma.payment.update({
+          where: { paymentId: paymentIntent.id },
+          data: { status: 'succeeded' },
+        });
+        await this.prisma.order.update({
+          where: { paymentId: paymentIntent.id },
+          data: {
+            status: 'paid',
+          },
+        });
+        this.logger.log(`PaymentIntent succeeded: ${paymentIntent.id}`);
+        break;
+      }
+      case 'checkout.session.completed': {
+        const session = event.data.object;
+        await this.prisma.payment.update({
+          where: { paymentId: session.id },
+          data: { status: 'complete' },
+        });
+        await this.prisma.order.update({
+          where: { paymentId: session.id },
+          data: {
+            status: 'paid',
+          },
+        });
+        this.logger.log(`Checkout session completed: ${session.id}`);
+        break;
+      }
+      default:
+        this.logger.log(`Unhandled event type: ${event.type}`);
+    }
   }
 }

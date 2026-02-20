@@ -203,4 +203,15 @@ export class StripeService {
       throw new InternalServerErrorException('Something failed');
     }
   }
+
+  constructEvent(rawBody: Buffer, signature: string): Stripe.Event {
+    const webhookSecret = this.configService.getOrThrow<string>(
+      'STRIPE_WEBHOOK_SECRET',
+    );
+    return this.stripe.webhooks.constructEvent(
+      rawBody,
+      signature,
+      webhookSecret,
+    );
+  }
 }
