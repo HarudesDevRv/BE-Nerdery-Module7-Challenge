@@ -10,6 +10,7 @@ import { RefreshTokenDto } from './dto/responses/refresh-token.dto';
 import { LoginDto } from './dto/requests/login.dto';
 import { ResetTokenDto } from './dto/responses/reset-token.dto';
 import { ResetPasswordDto } from './dto/requests/reset-password.dto';
+import { NotificationsProducer } from '../notifications/notifications.producer';
 
 @Injectable()
 export class AuthService {
@@ -19,6 +20,7 @@ export class AuthService {
     private prisma: PrismaService,
     private jwtService: JwtService,
     private configService: ConfigService,
+    private notificationsProducer: NotificationsProducer,
   ) {
     this.saltRounds = parseInt(
       this.configService.get<string>('BCRYPT_SALT_ROUNDS', '10'),
@@ -152,6 +154,12 @@ export class AuthService {
     }
 
     const resetPassword = await this.createResetToken(user.email);
+
+    await this.notificationsProducer.notifyPasswordReset({
+      email: user.email,
+      resetToken: resetPassword.reset_token,
+      expiresAt: resetPassword.expires_at,
+    });
 
     return resetPassword;
   }
