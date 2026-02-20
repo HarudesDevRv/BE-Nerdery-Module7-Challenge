@@ -18,6 +18,7 @@ import { ProductImageLoader } from './products/loaders/product-image.loader';
 import { ProductInventoryLoader } from './products/loaders/product-inventory.loader';
 import { OrderItemsLoader } from './orders/loaders/order-items.loader';
 import { OrderPromoCodesLoader } from './orders/loaders/order-promo-codes.loader';
+import { DeliveryModule } from './delivery/delivery.module';
 
 @Module({
   imports: [
@@ -66,6 +67,7 @@ import { OrderPromoCodesLoader } from './orders/loaders/order-promo-codes.loader
     StripeModule,
     PaymentModule,
     PromoCodeModule,
+    DeliveryModule,
   ],
 })
 export class AppModule {}

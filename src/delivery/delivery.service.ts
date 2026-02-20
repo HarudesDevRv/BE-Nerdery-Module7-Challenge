@@ -33,6 +33,20 @@ export class DeliveryService {
     return updatedDelivery;
   }
 
+  async completeDelivery(deliveryId: string) {
+    const delivery = await this.prisma.delivery.update({
+      where: { deliveryId },
+      data: { status: 'delivered' },
+    });
+
+    await this.prisma.order.update({
+      where: { orderId: delivery.orderId },
+      data: { status: 'delivered' },
+    });
+
+    return delivery;
+  }
+
   async assign(deliveryId: string, deliveryPersonId: string) {
     const deliveryPerson = await this.prisma.user.findUnique({
       where: { userId: deliveryPersonId },
