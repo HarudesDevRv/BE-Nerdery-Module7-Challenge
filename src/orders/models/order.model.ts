@@ -45,6 +45,7 @@ export class Order {
   subtotal: number;
   @Field(() => Float)
   total: number;
+  @Field(() => OrderStatus)
   status: OrderStatus;
   promoCodes?: OrderPromoCode[];
   createdAt: Date;

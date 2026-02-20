@@ -40,6 +40,7 @@ export class OrderFilterInput {
   toDate?: Date;
   @IsOptional()
   @IsEnum(OrderStatus)
+  @Field(() => OrderStatus)
   status?: OrderStatus;
   @Field(() => Float)
   @IsOptional()

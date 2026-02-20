@@ -98,12 +98,23 @@ enum DiscountType {
 type Order {
   orderId: ID!
   paymentId: ID
+  guestEmail: String
   subtotal: Float!
   total: Float!
+  status: OrderStatus!
   items: [OrderItem!]!
   promoCodes: [OrderPromoCode!]
   createdAt: DateTime!
   updatedAt: DateTime!
+}
+
+enum OrderStatus {
+  pending
+  paid
+  processing
+  cancelled
+  shipped
+  delivered
 }
 
 """
@@ -124,14 +135,37 @@ type PromoCode {
   stripePromotionCodeId: String
 }
 
+type Delivery {
+  deliveryId: ID!
+  status: DeliveryStatus!
+  orderId: String!
+  deliveryPersonId: String
+  estimatedDelivery: DateTime
+  deliveredAt: DateTime
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+enum DeliveryStatus {
+  pending
+  assigned
+  in_transit
+  delivered
+  failed
+  returned
+}
+
 type Query {
   productCategories: [Category!]!
   products(filter: ProductFilterInput): ProductsPage!
   productDetail(productId: ID!): ProductWithDetails!
   managerProducts(filter: ProductFilterInput): ManagerProductsPage!
+  allOrders(filter: OrderFilterInput): [Order!]!
   myOrders(filter: OrderFilterInput): [Order!]!
   orderDetail(orderId: ID!): Order!
   myCart: Cart!
+  deliveryByOrder(orderId: String!): Delivery!
+  myDeliveries: [Delivery!]!
 }
 
 input ProductFilterInput {
@@ -143,8 +177,13 @@ input ProductFilterInput {
 }
 
 input OrderFilterInput {
-  page: Int = 1
+  offset: Int = 0
   limit: Int = 10
+  status: OrderStatus
+  minTotal: Float
+  maxTotal: Float
+  fromDate: DateTime
+  toDate: DateTime
 }
 
 type Mutation {
@@ -154,7 +193,9 @@ type Mutation {
   deleteProduct(productId: ID!): Boolean!
   uploadProductImage(productId: ID!, file: Upload!): ProductImage!
   deleteProductImage(imageId: ID!): Boolean!
+  createGuestOrder(input: CreateGuestOrderInput!): Order!
   createOrder(input: CreateOrderInput!): Order!
+  createSingleItemOrder(input: CreateSingleItemOrderInput!): Order!
   addToCart(input: AddToCartInput!): Cart!
   updateCartItem(input: UpdateCartItemInput!): Cart!
   removeCartItem(inventoryId: ID!): Cart!
@@ -162,6 +203,8 @@ type Mutation {
   createPromoCode(input: CreatePromoCodeInput!): PromoCode!
   updatePromoCode(id: String!, input: UpdatePromoCodeInput!): PromoCode!
   disablePromoCode(id: String!): PromoCode!
+  updateDeliveryStatus(deliveryId: String!, input: UpdateDeliveryInput!): Delivery!
+  assignDelivery(deliveryId: String!, deliveryPersonId: String!): Delivery!
 }
 
 input CreateProductInput {
@@ -182,8 +225,21 @@ input UpdateProductInput {
 """The `Upload` scalar type represents a file upload."""
 scalar Upload
 
+input CreateGuestOrderInput {
+  inventoryId: ID!
+  addressId: ID!
+  email: String!
+  currency: String!
+}
+
 input CreateOrderInput {
-  codes: [String!]
+  addressId: ID
+  currency: String!
+}
+
+input CreateSingleItemOrderInput {
+  inventoryId: ID!
+  addressId: ID
   currency: String!
 }
 
@@ -211,4 +267,9 @@ input UpdatePromoCodeInput {
   minAmount: Int
   expirationDate: DateTime
   isActive: Boolean
+}
+
+input UpdateDeliveryInput {
+  status: DeliveryStatus
+  estimatedDelivery: DateTime
 }

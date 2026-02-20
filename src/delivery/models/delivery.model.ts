@@ -1,11 +1,15 @@
-import { ObjectType, Field, ID } from '@nestjs/graphql';
+import { ObjectType, Field, ID, registerEnumType } from '@nestjs/graphql';
+import { DeliveryStatus } from '@prisma/client';
+
+registerEnumType(DeliveryStatus, { name: 'DeliveryStatus' });
 
 @ObjectType()
 export class Delivery {
   @Field(() => ID)
   deliveryId: string;
   orderId: string;
-  status: string;
+  @Field(() => DeliveryStatus)
+  status: DeliveryStatus;
   deliveryPersonId?: string;
   estimatedDelivery?: Date;
   deliveredAt?: Date;
