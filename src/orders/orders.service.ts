@@ -103,6 +103,7 @@ export class OrdersService {
     const cart = await this.prisma.cart.findUnique({
       where: { userId },
       include: {
+        user: true,
         products: { include: { inventory: { include: { product: true } } } },
       },
     });
@@ -123,10 +124,13 @@ export class OrdersService {
       0,
     );
 
+    const deliveryAddressId = input.addressId ?? cart.user.addressId;
+
     const newOrder = await this.prisma.order.create({
       data: {
         userId,
         status: 'pending',
+        addressId: deliveryAddressId,
         products: {
           createMany: {
             data: cart.products.map((item) => ({
@@ -151,9 +155,12 @@ export class OrdersService {
     userId: string,
     input: CreateSingleItemOrderInput,
   ) {
-    const inventory = await this.prisma.inventory.findUnique({
-      where: { inventoryId: input.inventoryId },
-    });
+    const [inventory, user] = await Promise.all([
+      this.prisma.inventory.findUnique({
+        where: { inventoryId: input.inventoryId },
+      }),
+      this.prisma.user.findUniqueOrThrow({ where: { userId } }),
+    ]);
 
     if (!inventory || !inventory.isActive || inventory.deletedAt !== null) {
       throw new NotFoundException('Inventory item not found');
@@ -164,11 +171,13 @@ export class OrdersService {
     }
 
     const subtotal = inventory.salePrice.toNumber();
+    const deliveryAddressId = input.addressId ?? user.addressId;
 
     const newOrder = await this.prisma.order.create({
       data: {
         userId,
         status: 'pending',
+        addressId: deliveryAddressId,
         products: {
           create: {
             inventoryId: inventory.inventoryId,
@@ -204,6 +213,7 @@ export class OrdersService {
       data: {
         guestEmail: input.email,
         status: 'pending',
+        addressId: input.addressId,
         products: {
           create: {
             inventoryId: inventory.inventoryId,

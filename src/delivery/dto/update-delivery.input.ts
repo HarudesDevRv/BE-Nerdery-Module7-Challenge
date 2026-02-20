@@ -1,13 +1,12 @@
-import { InputType, Field } from '@nestjs/graphql';
+import { InputType } from '@nestjs/graphql';
+import { DeliveryStatus } from '@prisma/client';
 import { IsString, IsOptional } from 'class-validator';
 
 @InputType()
 export class UpdateDeliveryInput {
-  @Field()
   @IsString()
-  status: string;
-
-  @Field({ nullable: true })
+  @IsOptional()
+  status?: DeliveryStatus;
   @IsOptional()
   estimatedDelivery?: Date;
 }

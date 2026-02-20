@@ -83,6 +83,7 @@ export class PaymentService {
   }
 
   async handleWebhook(event: Stripe.Event): Promise<void> {
+    let paymentId: string | null = null;
     switch (event.type) {
       case 'payment_intent.succeeded': {
         const paymentIntent = event.data.object;
@@ -90,12 +91,7 @@ export class PaymentService {
           where: { paymentId: paymentIntent.id },
           data: { status: 'succeeded' },
         });
-        await this.prisma.order.update({
-          where: { paymentId: paymentIntent.id },
-          data: {
-            status: 'paid',
-          },
-        });
+        paymentId = paymentIntent.id;
         this.logger.log(`PaymentIntent succeeded: ${paymentIntent.id}`);
         break;
       }
@@ -105,17 +101,41 @@ export class PaymentService {
           where: { paymentId: session.id },
           data: { status: 'complete' },
         });
-        await this.prisma.order.update({
-          where: { paymentId: session.id },
-          data: {
-            status: 'paid',
-          },
-        });
+        paymentId = session.id;
         this.logger.log(`Checkout session completed: ${session.id}`);
         break;
       }
       default:
         this.logger.log(`Unhandled event type: ${event.type}`);
     }
+    if (!paymentId) {
+      throw new InternalServerErrorException(
+        "The payment couldn't be processed",
+      );
+    }
+    const updatedOrder = await this.prisma.order.update({
+      where: { paymentId },
+      data: { status: 'paid' },
+    });
+
+    if (!updatedOrder) {
+      throw new InternalServerErrorException(
+        'There was a problem updating the order',
+      );
+    }
+
+    if (!updatedOrder.addressId) {
+      this.logger.error(
+        `Order ${updatedOrder.orderId} has no delivery address — delivery not created`,
+      );
+      return;
+    }
+
+    await this.prisma.delivery.create({
+      data: {
+        orderId: updatedOrder.orderId,
+        addressId: updatedOrder.addressId,
+      },
+    });
   }
 }

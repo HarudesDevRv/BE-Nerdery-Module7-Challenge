@@ -1,5 +1,5 @@
 import { Field, ID, InputType } from '@nestjs/graphql';
-import { IsString, IsUUID, MaxLength } from 'class-validator';
+import { IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
 
 @InputType()
 export class CreateSingleItemOrderInput {
@@ -10,4 +10,9 @@ export class CreateSingleItemOrderInput {
   @IsString()
   @MaxLength(3)
   currency: string;
+
+  @Field(() => ID, { nullable: true })
+  @IsUUID()
+  @IsOptional()
+  addressId?: string;
 }

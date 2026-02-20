@@ -13,4 +13,8 @@ export class CreateGuestOrderInput {
   @IsString()
   @MaxLength(3)
   currency: string;
+
+  @Field(() => ID)
+  @IsUUID()
+  addressId: string;
 }
