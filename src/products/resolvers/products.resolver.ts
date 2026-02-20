@@ -9,20 +9,20 @@ import {
   Context,
 } from '@nestjs/graphql';
 import { UseGuards } from '@nestjs/common';
-import { ProductsService } from './services/products.service';
-import { Category, Product, ProductImage } from './models/product.model';
-import { ProductFilterInput } from './dto/product-filter.input';
-import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
-import { PoliciesGuard } from '../common/casl/policies.guard';
-import { CheckPolicies } from '../common/casl/check-policies.decorator';
-import { Action } from '../common/casl/casl-ability.factory';
-import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { ProductsService } from '../services/products.service';
+import { Category, Product, ProductImage } from '../models/product.model';
+import { ProductFilterInput } from '../dto/product-filter.input';
 import {
   ProductWithDetails,
   ProductsPage,
-} from './models/product-detail.model';
+} from '../models/product-detail.model';
 import DataLoader from 'dataloader';
 import { Image } from '@prisma/client';
+import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
+import { PoliciesGuard } from 'src/common/casl/policies.guard';
+import { CheckPolicies } from 'src/common/casl/check-policies.decorator';
+import { Action } from 'src/common/casl/casl-ability.factory';
+import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 
 @Resolver(() => ProductWithDetails)
 export class ProductsResolver {

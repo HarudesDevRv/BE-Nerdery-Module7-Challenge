@@ -44,8 +44,7 @@ export class CaslAbilityFactory {
         can(Action.Manage, 'Category');
         can(Action.Manage, 'Brand');
         can(Action.Manage, 'Inventory');
-        can(Action.Read, 'Order');
-        can(Action.Update, 'Order');
+        can(Action.Manage, 'Order');
         can(Action.Manage, 'Delivery');
         can(Action.Manage, 'Image');
         can(Action.Manage, 'DiscountCode');

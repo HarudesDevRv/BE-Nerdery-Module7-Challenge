@@ -12,7 +12,7 @@ import {
   Inventory,
   ManagerProduct,
   ManagerProductsPage,
-} from './models/manager-product.model';
+} from '../models/manager-product.model';
 import {
   ConflictException,
   InternalServerErrorException,
@@ -22,13 +22,13 @@ import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { PoliciesGuard } from 'src/common/casl/policies.guard';
 import { CheckPolicies } from 'src/common/casl/check-policies.decorator';
 import { Action } from 'src/common/casl/casl-ability.factory';
-import { ProductFilterInput } from './dto/product-filter.input';
+import { ProductFilterInput } from '../dto/product-filter.input';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
-import { ProductsService } from './services/products.service';
+import { ProductsService } from '../services/products.service';
 import { S3Service } from 'src/common/services/s3/s3.service';
-import { CreateProductInput } from './dto/create-product.input';
-import { UpdateProductInput } from './dto/update-product.input';
-import { ProductImage } from './models/product.model';
+import { CreateProductInput } from '../dto/create-product.input';
+import { UpdateProductInput } from '../dto/update-product.input';
+import { ProductImage } from '../models/product.model';
 import * as graphqlUploadTs from 'graphql-upload-ts';
 import DataLoader from 'dataloader';
 import { Image } from '@prisma/client';

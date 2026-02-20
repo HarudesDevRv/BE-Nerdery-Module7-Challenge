@@ -12,6 +12,7 @@ import { UseGuards } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { Order, OrderItem, OrderPromoCode } from './models/order.model';
 import { CreateOrderInput } from './dto/create-order.input';
+import { CreateSingleItemOrderInput } from './dto/create-single-item-order.input';
 import { OrderFilterInput } from './dto/order-filter.input';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { PoliciesGuard } from '../common/casl/policies.guard';
@@ -26,12 +27,20 @@ export class OrdersResolver {
   constructor(private ordersService: OrdersService) {}
 
   @Query(() => [Order])
+  @CheckPolicies((ability) => ability.can(Action.Manage, 'Order'))
+  async allOrders(
+    @Args('filter', { nullable: true }) filter?: OrderFilterInput,
+  ) {
+    return this.ordersService.findAll(filter ?? {});
+  }
+
+  @Query(() => [Order])
   @CheckPolicies((ability) => ability.can(Action.Read, 'Order'))
   async myOrders(
     @CurrentUser() user: { userId: string },
     @Args('filter', { nullable: true }) filter?: OrderFilterInput,
   ) {
-    return this.ordersService.findAll(user.userId, filter ?? {});
+    return this.ordersService.findAllByUser(user.userId, filter ?? {});
   }
 
   @Query(() => Order)
@@ -50,6 +59,15 @@ export class OrdersResolver {
     @Args('input') input: CreateOrderInput,
   ) {
     return this.ordersService.create(user.userId, input);
+  }
+
+  @Mutation(() => Order)
+  @CheckPolicies((ability) => ability.can(Action.Create, 'Order'))
+  async createSingleItemOrder(
+    @CurrentUser() user: { userId: string },
+    @Args('input') input: CreateSingleItemOrderInput,
+  ) {
+    return this.ordersService.createSingleItemOrder(user.userId, input);
   }
 
   @ResolveField(() => [OrderItem])
