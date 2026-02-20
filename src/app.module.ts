@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
+import { BullModule } from '@nestjs/bullmq';
 import { join } from 'path';
 import { PrismaModule } from './common/services/prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
@@ -21,6 +22,15 @@ import { OrderPromoCodesLoader } from './orders/loaders/order-promo-codes.loader
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    BullModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        connection: {
+          host: config.getOrThrow<string>('REDIS_HOST'),
+          port: config.getOrThrow<number>('REDIS_PORT'),
+        },
+      }),
+    }),
     GraphQLModule.forRootAsync<ApolloDriverConfig>({
       imports: [ProductsModule, OrdersModule],
       inject: [

@@ -11,6 +11,7 @@ import { PaymentIntentResponseDto } from './dto/res/payment-intent-response.dto'
 import { CheckoutSessionResponseDto } from './dto/res/checkout-session-response.dto';
 import { StripeService } from 'src/common/services/stripe/stripe.service';
 import Stripe from 'stripe';
+import { NotificationsProducer } from 'src/notifications/notifications.producer';
 
 @Injectable()
 export class PaymentService {
@@ -19,6 +20,7 @@ export class PaymentService {
   constructor(
     private prisma: PrismaService,
     private stripe: StripeService,
+    private notificationsProducer: NotificationsProducer,
   ) {}
 
   async createPaymentIntent(
@@ -116,6 +118,7 @@ export class PaymentService {
     const updatedOrder = await this.prisma.order.update({
       where: { paymentId },
       data: { status: 'paid' },
+      include: { products: { include: { products: true } } },
     });
 
     if (!updatedOrder) {
@@ -129,6 +132,41 @@ export class PaymentService {
         `Order ${updatedOrder.orderId} has no delivery address — delivery not created`,
       );
       return;
+    }
+
+    for (const item of updatedOrder.products) {
+      const updatedInventory = await this.prisma.inventory.update({
+        where: { inventoryId: item.inventoryId },
+        data: { stock: { decrement: item.amount } },
+        include: {
+          product: { include: { images: true } },
+        },
+      });
+
+      if (updatedInventory.stock <= 3) {
+        const { _sum } = await this.prisma.inventory.aggregate({
+          where: { productId: updatedInventory.productId },
+          _sum: { stock: true },
+        });
+        const totalStock = _sum.stock ?? 0;
+
+        if (totalStock <= 3) {
+          const likes = await this.prisma.userLike.findMany({
+            where: { productId: updatedInventory.productId, isActive: true },
+            include: { user: true },
+          });
+
+          await this.notificationsProducer.notifyLowStock({
+            productName: updatedInventory.product.name,
+            stock: totalStock,
+            userEmails: likes.map((like) => like.user.email),
+            productImageUrl:
+              updatedInventory.product.images.length > 0
+                ? updatedInventory.product.images[0].url
+                : null,
+          });
+        }
+      }
     }
 
     await this.prisma.delivery.create({

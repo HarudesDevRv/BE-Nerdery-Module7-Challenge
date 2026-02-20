@@ -25,7 +25,7 @@ const productDetailSelect = {
   inventories: {
     select: { price: true, stock: true, salePrice: true },
     take: 1,
-    orderBy: { price: 'asc' },
+    orderBy: [{ price: 'asc' }, { stock: 'desc' }],
   },
   _count: {
     select: { userLikes: true },
