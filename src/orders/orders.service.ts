@@ -117,51 +117,10 @@ export class OrdersService {
       throw new BadRequestException('Your cart is empty');
     }
 
-    const codes =
-      input.codes && input.codes.length > 0
-        ? await this.prisma.discountCode.findMany({
-            where: {
-              code: { in: input.codes },
-              expirationDate: { gt: new Date() },
-            },
-            select: {
-              code: true,
-              discountType: true,
-              discountValue: true,
-              discountCodeId: true,
-              usageLimit: true,
-              _count: { select: { orders: true } },
-            },
-          })
-        : [];
-
-    if (input.codes && codes.length !== input.codes.length) {
-      throw new BadRequestException('Discount code not found');
-    }
-
-    const exhaustedCodes = codes.filter(
-      (code) => code._count.orders >= code.usageLimit,
-    );
-
-    if (exhaustedCodes.length > 0) {
-      throw new BadRequestException(
-        `Discount code "${exhaustedCodes[0].code}" has reached its usage limit`,
-      );
-    }
-
     const subtotal = cart.products.reduce(
       (accumulator, item) =>
         (accumulator += item.amount * item.inventory.salePrice.toNumber()),
       0,
-    );
-
-    const total = codes.reduce(
-      (accumulator, code) =>
-        accumulator -
-        (code.discountType == 'fixed'
-          ? code.discountValue.toNumber()
-          : (subtotal * code.discountValue.toNumber()) / 100),
-      subtotal,
     );
 
     const newOrder = await this.prisma.order.create({
@@ -178,14 +137,14 @@ export class OrdersService {
           },
         },
         subtotal,
-        total,
+        total: subtotal,
         currency: input.currency,
       },
     });
 
     await this.cartService.clearCart(userId);
 
-    return this.orderUtils.formatCreatedOrder(newOrder, subtotal, total);
+    return this.orderUtils.formatCreatedOrder(newOrder, subtotal);
   }
 
   async createSingleItemOrder(
@@ -204,48 +163,7 @@ export class OrdersService {
       throw new BadRequestException('Inventory item is out of stock');
     }
 
-    const codes =
-      input.codes && input.codes.length > 0
-        ? await this.prisma.discountCode.findMany({
-            where: {
-              code: { in: input.codes },
-              expirationDate: { gt: new Date() },
-            },
-            select: {
-              code: true,
-              discountType: true,
-              discountValue: true,
-              discountCodeId: true,
-              usageLimit: true,
-              _count: { select: { orders: true } },
-            },
-          })
-        : [];
-
-    if (input.codes && codes.length !== input.codes.length) {
-      throw new BadRequestException('Discount code not found');
-    }
-
-    const exhaustedCodes = codes.filter(
-      (code) => code._count.orders >= code.usageLimit,
-    );
-
-    if (exhaustedCodes.length > 0) {
-      throw new BadRequestException(
-        `Discount code "${exhaustedCodes[0].code}" has reached its usage limit`,
-      );
-    }
-
     const subtotal = inventory.salePrice.toNumber();
-
-    const total = codes.reduce(
-      (accumulator, code) =>
-        accumulator -
-        (code.discountType == 'fixed'
-          ? code.discountValue.toNumber()
-          : (subtotal * code.discountValue.toNumber()) / 100),
-      subtotal,
-    );
 
     const newOrder = await this.prisma.order.create({
       data: {
@@ -259,12 +177,12 @@ export class OrdersService {
           },
         },
         subtotal,
-        total,
+        total: subtotal,
         currency: input.currency,
       },
     });
 
-    return this.orderUtils.formatCreatedOrder(newOrder, subtotal, total);
+    return this.orderUtils.formatCreatedOrder(newOrder, subtotal);
   }
 
   async createGuestOrder(input: CreateGuestOrderInput) {
@@ -299,6 +217,6 @@ export class OrdersService {
       },
     });
 
-    return this.orderUtils.formatCreatedOrder(newOrder, subtotal, subtotal);
+    return this.orderUtils.formatCreatedOrder(newOrder, subtotal);
   }
 }

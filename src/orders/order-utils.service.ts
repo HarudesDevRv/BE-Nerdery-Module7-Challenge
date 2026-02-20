@@ -30,12 +30,12 @@ export class OrderUtilsService {
     };
   }
 
-  formatCreatedOrder(order: CreatedOrder, subtotal: number, total: number) {
+  formatCreatedOrder(order: CreatedOrder, subtotal: number) {
     return {
       orderId: order.orderId,
       ...(order.guestEmail && { guestEmail: order.guestEmail }),
       subtotal,
-      total,
+      total: subtotal,
       createdAt: order.createdAt,
       updatedAt: order.updatedAt,
     };
