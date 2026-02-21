@@ -1,4 +1,5 @@
 import {
+  ConflictException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -29,6 +30,21 @@ export class InventoryService {
 
     if (product.managerId !== managerId) {
       throw new ForbiddenException("Can't manage this product's inventory");
+    }
+
+    const exists = await this.prisma.deletedAtFilter.inventory.findUnique({
+      where: {
+        storeId_productId: {
+          storeId: input.storeId,
+          productId: input.productId,
+        },
+      },
+    });
+
+    if (exists) {
+      throw new ConflictException(
+        'Inventory already exists for that product on that store',
+      );
     }
 
     const inventory = await this.prisma.inventory.upsert({
