@@ -5,10 +5,10 @@ import {
 } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { PrismaService } from '../common/services/prisma/prisma.service';
-import { CreatePaymentIntentDto } from './dto/req/create-payment-intent.dto';
-import { CreateCheckoutSessionDto } from './dto/req/create-checkout-session.dto';
-import { PaymentIntentResponseDto } from './dto/res/payment-intent-response.dto';
-import { CheckoutSessionResponseDto } from './dto/res/checkout-session-response.dto';
+import { CreatePaymentIntentDto } from './dto/requests/create-payment-intent.dto';
+import { CreateCheckoutSessionDto } from './dto/requests/create-checkout-session.dto';
+import { PaymentIntentResponseDto } from './dto/responses/payment-intent-response.dto';
+import { CheckoutSessionResponseDto } from './dto/responses/checkout-session-response.dto';
 import { StripeService } from 'src/common/services/stripe/stripe.service';
 import Stripe from 'stripe';
 import { NotificationsProducer } from 'src/notifications/notifications.producer';
