@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { OrderStatus } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/client';
 
 type RawOrder = {
@@ -8,6 +9,8 @@ type RawOrder = {
   total: Decimal;
   createdAt: Date;
   updatedAt: Date;
+  status: OrderStatus;
+  payment?: { paymentMethod: string | null } | null;
 };
 
 type CreatedOrder = {
@@ -23,10 +26,12 @@ export class OrderUtilsService {
     return {
       orderId: order.orderId,
       paymentId: order.paymentId ?? undefined,
+      paymentMethod: order.payment?.paymentMethod ?? undefined,
       subtotal: order.subtotal.toNumber(),
       total: order.total.toNumber(),
       createdAt: order.createdAt,
       updatedAt: order.updatedAt,
+      status: order.status,
     };
   }
 

@@ -48,6 +48,7 @@ export class OrdersService {
       },
       skip,
       take,
+      include: { payment: true },
     });
 
     return orders.map((order) => this.orderUtils.formatOrder(order));
@@ -78,6 +79,7 @@ export class OrdersService {
       },
       skip,
       take,
+      include: { payment: true },
     });
 
     return orders.map((order) => this.orderUtils.formatOrder(order));
@@ -86,6 +88,7 @@ export class OrdersService {
   async findOne(orderId: string, userId: string) {
     const order = await this.prisma.order.findUnique({
       where: { orderId },
+      include: { payment: true },
     });
 
     if (!order) {

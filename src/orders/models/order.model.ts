@@ -45,6 +45,8 @@ export class Order {
   @Field(() => ID)
   readonly paymentId?: string;
 
+  readonly paymentMethod?: string;
+
   @Field({ nullable: true })
   readonly guestEmail?: string;
 

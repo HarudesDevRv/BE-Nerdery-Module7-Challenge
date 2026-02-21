@@ -102,6 +102,7 @@ type Order {
   subtotal: Float!
   total: Float!
   status: OrderStatus!
+  paymentMethod: String
   items: [OrderItem!]!
   promoCodes: [OrderPromoCode!]
   createdAt: DateTime!
