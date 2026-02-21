@@ -1,7 +1,9 @@
 import {
+  BadRequestException,
   Injectable,
   InternalServerErrorException,
   Logger,
+  NotFoundException,
 } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { PrismaService } from '../common/services/prisma/prisma.service';
@@ -23,9 +25,26 @@ export class PaymentService {
     private notificationsProducer: NotificationsProducer,
   ) {}
 
+  private async validateOrder(orderId: string) {
+    const order = await this.prisma.order.findUnique({
+      where: { orderId },
+    });
+
+    if (!order) {
+      throw new NotFoundException('Order not found');
+    }
+
+    if (order.status !== 'pending') {
+      throw new BadRequestException(
+        'Can only create payments on pending orders',
+      );
+    }
+  }
+
   async createPaymentIntent(
     dto: CreatePaymentIntentDto,
   ): Promise<PaymentIntentResponseDto> {
+    await this.validateOrder(dto.orderId);
     const paymentIntent = await this.stripe.createPaymentIntent(
       dto.amount,
       dto.currency,
@@ -57,6 +76,8 @@ export class PaymentService {
   async createCheckoutSession(
     dto: CreateCheckoutSessionDto,
   ): Promise<CheckoutSessionResponseDto> {
+    await this.validateOrder(dto.orderId);
+
     const checkoutSession = await this.stripe.createCheckoutSession(dto.items);
 
     const { url, amount, currency, status, checkoutSessionId } =

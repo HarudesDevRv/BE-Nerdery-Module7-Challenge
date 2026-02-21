@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../common/services/prisma/prisma.service';
 import { UpdateDeliveryInput } from './dto/update-delivery.input';
 
@@ -34,7 +38,15 @@ export class DeliveryService {
   }
 
   async completeDelivery(deliveryId: string) {
-    const delivery = await this.prisma.delivery.update({
+    const delivery = await this.prisma.delivery.findUnique({
+      where: { deliveryId },
+    });
+
+    if (!delivery) {
+      throw new NotFoundException('Delivery not found');
+    }
+
+    const updatedDelivery = await this.prisma.delivery.update({
       where: { deliveryId },
       data: { status: 'delivered' },
     });
@@ -44,7 +56,7 @@ export class DeliveryService {
       data: { status: 'delivered' },
     });
 
-    return delivery;
+    return updatedDelivery;
   }
 
   async assign(deliveryId: string, deliveryPersonId: string) {
@@ -53,12 +65,32 @@ export class DeliveryService {
     });
 
     if (!deliveryPerson || deliveryPerson.role != 'delivery_person') {
-      return new BadRequestException('The user is not a delivery person');
+      throw new BadRequestException('The user is not a delivery person');
+    }
+
+    const delivery = await this.prisma.delivery.findUnique({
+      where: { deliveryId },
+      include: { order: true },
+    });
+
+    if (!delivery) {
+      throw new NotFoundException('Delivery not found');
+    }
+
+    if (delivery.order.status !== 'processing') {
+      throw new BadRequestException(
+        'Delivery can only be assigned when the order status is processing',
+      );
     }
 
     const updatedDelivery = await this.prisma.delivery.update({
       where: { deliveryId },
       data: { deliveryPersonId },
+    });
+
+    await this.prisma.order.update({
+      where: { orderId: delivery.orderId },
+      data: { status: 'shipped' },
     });
 
     return updatedDelivery;
