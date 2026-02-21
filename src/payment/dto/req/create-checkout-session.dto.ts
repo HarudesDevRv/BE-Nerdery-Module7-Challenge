@@ -6,6 +6,7 @@ import {
   IsPositive,
   IsString,
   IsUUID,
+  Min,
   ValidateNested,
 } from 'class-validator';
 
@@ -22,7 +23,7 @@ export class CheckoutItemDto {
   readonly productName!: string;
 
   @IsInt()
-  @IsPositive()
+  @Min(1)
   readonly quantity!: number;
 }
 

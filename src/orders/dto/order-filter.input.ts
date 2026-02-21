@@ -13,6 +13,7 @@ import {
   IsNumber,
   IsDate,
   Min,
+  IsPositive,
 } from 'class-validator';
 
 registerEnumType(OrderStatus, { name: 'OrderStatus' });
@@ -47,12 +48,12 @@ export class OrderFilterInput {
   @Field(() => Float)
   @IsOptional()
   @IsNumber()
-  @Min(0)
+  @IsPositive()
   readonly minTotal?: number;
 
   @Field(() => Float)
   @IsOptional()
   @IsNumber()
-  @Min(0)
+  @IsPositive()
   readonly maxTotal?: number;
 }

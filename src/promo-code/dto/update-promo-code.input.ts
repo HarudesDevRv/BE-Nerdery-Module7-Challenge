@@ -15,7 +15,7 @@ export class UpdatePromoCodeInput {
   @Field(() => Int)
   @IsOptional()
   @IsInt()
-  @Min(0)
+  @Min(1)
   readonly minAmount?: number;
 
   @IsOptional()
