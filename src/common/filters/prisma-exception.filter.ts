@@ -28,11 +28,15 @@ export class PrismaExceptionFilter implements ExceptionFilter {
     }
 
     const response = host.switchToHttp().getResponse<Response>();
-    response.status(status).json({
-      statusCode: status,
-      message,
-      timestamp: new Date().toISOString(),
-    });
+    if (typeof response?.status === 'function') {
+      response.status(status).json({
+        statusCode: status,
+        message,
+        timestamp: new Date().toISOString(),
+      });
+    } else {
+      throw new HttpException(message, status);
+    }
   }
 
   private mapException(

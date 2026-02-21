@@ -50,6 +50,7 @@ import { InventoryModule } from './inventory/inventory.module';
       ) => ({
         driver: ApolloDriver,
         autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
+        includeStacktraceInErrorResponses: false,
         context: () => ({
           imagesLoader: imageLoader.createLoader(),
           inventoriesLoader: inventoryLoader.createLoader(),
