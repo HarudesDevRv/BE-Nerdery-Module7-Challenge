@@ -86,6 +86,7 @@ export class PaymentService {
 
   async handleWebhook(event: Stripe.Event): Promise<void> {
     let paymentId: string | null = null;
+    //TODO: Update the promo codes used on the order payment
     switch (event.type) {
       case 'payment_intent.succeeded': {
         const paymentIntent = event.data.object;
@@ -127,7 +128,6 @@ export class PaymentService {
       );
     }
 
-    //TODO: Extract logic to a separated function
     if (!updatedOrder.addressId) {
       this.logger.error(
         `Order ${updatedOrder.orderId} has no delivery address — delivery not created`,
@@ -136,57 +136,7 @@ export class PaymentService {
     }
 
     for (const item of updatedOrder.products) {
-      const updatedInventory = await this.prisma.inventory.update({
-        where: { inventoryId: item.inventoryId },
-        data: { stock: { decrement: item.amount } },
-        include: {
-          product: { include: { images: true } },
-        },
-      });
-
-      if (updatedInventory.stock <= 3) {
-        const { _sum } = await this.prisma.inventory.aggregate({
-          where: { productId: updatedInventory.productId },
-          _sum: { stock: true },
-        });
-        const totalStock = _sum.stock ?? 0;
-
-        if (totalStock <= 3) {
-          const likes = await this.prisma.userLike.findMany({
-            where: {
-              productId: updatedInventory.productId,
-              isActive: true,
-              user: {
-                orders: {
-                  none: {
-                    status: {
-                      in: ['paid', 'processing', 'shipped', 'delivered'],
-                    },
-                    products: {
-                      some: {
-                        products: {
-                          productId: updatedInventory.productId,
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-            },
-            include: { user: true },
-          });
-
-          await this.notificationsProducer.notifyLowStock({
-            productName: updatedInventory.product.name,
-            stock: totalStock,
-            userEmails: likes.map((like) => like.user.email),
-            productImageUrl:
-              updatedInventory.product.images.length > 0
-                ? updatedInventory.product.images[0].url
-                : null,
-          });
-        }
-      }
+      await this.decrementStockAndNotify(item.inventoryId, item.amount);
     }
 
     await this.prisma.delivery.create({
@@ -195,5 +145,62 @@ export class PaymentService {
         addressId: updatedOrder.addressId,
       },
     });
+  }
+
+  private async decrementStockAndNotify(
+    inventoryId: string,
+    amount: number,
+  ): Promise<void> {
+    const updatedInventory = await this.prisma.inventory.update({
+      where: { inventoryId },
+      data: { stock: { decrement: amount } },
+      include: {
+        product: { include: { images: true } },
+      },
+    });
+
+    if (updatedInventory.stock <= 3) {
+      const { _sum } = await this.prisma.inventory.aggregate({
+        where: { productId: updatedInventory.productId },
+        _sum: { stock: true },
+      });
+      const totalStock = _sum.stock ?? 0;
+
+      if (totalStock <= 3) {
+        const likes = await this.prisma.userLike.findMany({
+          where: {
+            productId: updatedInventory.productId,
+            isActive: true,
+            user: {
+              orders: {
+                none: {
+                  status: {
+                    in: ['paid', 'processing', 'shipped', 'delivered'],
+                  },
+                  products: {
+                    some: {
+                      products: {
+                        productId: updatedInventory.productId,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          include: { user: true },
+        });
+
+        await this.notificationsProducer.notifyLowStock({
+          productName: updatedInventory.product.name,
+          stock: totalStock,
+          userEmails: likes.map((like) => like.user.email),
+          productImageUrl:
+            updatedInventory.product.images.length > 0
+              ? updatedInventory.product.images[0].url
+              : null,
+        });
+      }
+    }
   }
 }
