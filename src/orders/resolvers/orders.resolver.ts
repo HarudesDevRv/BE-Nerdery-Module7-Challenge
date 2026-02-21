@@ -70,6 +70,14 @@ export class OrdersResolver {
     return this.ordersService.createSingleItemOrder(user.userId, input);
   }
 
+  @Mutation(() => Order)
+  @CheckPolicies((ability) => ability.can(Action.Update, 'Order'))
+  async processOrder(
+    @Args({ name: 'orderId', type: () => ID }) orderId: string,
+  ) {
+    return this.ordersService.processOrder(orderId);
+  }
+
   @ResolveField(() => [OrderItem])
   async items(
     @Parent() order: Order,

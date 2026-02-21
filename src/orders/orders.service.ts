@@ -240,4 +240,25 @@ export class OrdersService {
 
     return this.orderUtils.formatCreatedOrder(newOrder, subtotal);
   }
+
+  async processOrder(orderId: string) {
+    const order = await this.prisma.order.findUnique({
+      where: { orderId },
+    });
+
+    if (!order) {
+      throw new NotFoundException('Order not found');
+    }
+
+    if (order.status !== 'paid') {
+      throw new BadRequestException('Can only process orders with paid status');
+    }
+
+    const updatedOrder = await this.prisma.order.update({
+      where: { orderId },
+      data: { status: 'processing' },
+    });
+
+    return updatedOrder;
+  }
 }
