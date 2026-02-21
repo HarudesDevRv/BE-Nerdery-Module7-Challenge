@@ -289,7 +289,7 @@ input CreateInventoryInput {
   price: Float!
   salePrice: Float!
   stock: Int!
-  isActive: Boolean!
+  isActive: Boolean! = true
 }
 
 input UpdateInventoryInput {
