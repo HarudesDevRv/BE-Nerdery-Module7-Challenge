@@ -127,6 +127,7 @@ export class PaymentService {
       );
     }
 
+    //TODO: Extract logic to a separated function
     if (!updatedOrder.addressId) {
       this.logger.error(
         `Order ${updatedOrder.orderId} has no delivery address — delivery not created`,
@@ -152,7 +153,26 @@ export class PaymentService {
 
         if (totalStock <= 3) {
           const likes = await this.prisma.userLike.findMany({
-            where: { productId: updatedInventory.productId, isActive: true },
+            where: {
+              productId: updatedInventory.productId,
+              isActive: true,
+              user: {
+                orders: {
+                  none: {
+                    status: {
+                      in: ['paid', 'processing', 'shipped', 'delivered'],
+                    },
+                    products: {
+                      some: {
+                        products: {
+                          productId: updatedInventory.productId,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
             include: { user: true },
           });
 
