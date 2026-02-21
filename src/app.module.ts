@@ -19,6 +19,7 @@ import { ProductInventoryLoader } from './products/loaders/product-inventory.loa
 import { OrderItemsLoader } from './orders/loaders/order-items.loader';
 import { OrderPromoCodesLoader } from './orders/loaders/order-promo-codes.loader';
 import { DeliveryModule } from './delivery/delivery.module';
+import { InventoryModule } from './inventory/inventory.module';
 
 @Module({
   imports: [
@@ -68,6 +69,7 @@ import { DeliveryModule } from './delivery/delivery.module';
     PaymentModule,
     PromoCodeModule,
     DeliveryModule,
+    InventoryModule,
   ],
 })
 export class AppModule {}
