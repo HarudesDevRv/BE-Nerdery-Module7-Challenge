@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  InternalServerErrorException,
-  Logger,
-} from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Stripe from 'stripe';
 
@@ -25,7 +21,6 @@ type PromoCode = {
 @Injectable()
 export class StripeService {
   private stripe: Stripe;
-  private readonly logger = new Logger(StripeService.name);
 
   constructor(private configService: ConfigService) {
     this.stripe = new Stripe(
@@ -57,7 +52,6 @@ export class StripeService {
       };
     } catch (error) {
       if (error instanceof Error) {
-        this.logger.error('Failed to create PaymentIntent', error.stack);
         throw error;
       }
       throw new InternalServerErrorException('Something failed');
@@ -70,9 +64,6 @@ export class StripeService {
         amount,
         currency,
       });
-      this.logger.log(
-        `PaymentIntent created successfully with amount: ${amount} ${currency}`,
-      );
       console.log(paymentIntent);
       return {
         clientSecret: paymentIntent.client_secret,
@@ -83,7 +74,6 @@ export class StripeService {
       };
     } catch (error) {
       if (error instanceof Error) {
-        this.logger.error('Failed to create PaymentIntent', error.stack);
         throw error;
       }
       throw new InternalServerErrorException('Something failed');
@@ -130,14 +120,12 @@ export class StripeService {
       const promotionCode =
         await this.stripe.promotionCodes.create(promoParams);
 
-      this.logger.log(`Promo code created in Stripe: ${params.code}`);
       return {
         stripeCouponId: coupon.id,
         stripePromotionCodeId: promotionCode.id,
       };
     } catch (error) {
       if (error instanceof Error) {
-        this.logger.error('Failed to create Stripe promo code', error.stack);
         throw error;
       }
       throw new InternalServerErrorException('Something failed');
@@ -164,10 +152,8 @@ export class StripeService {
         stripePromotionCodeId,
         updateParams,
       );
-      this.logger.log(`Promo code updated in Stripe: ${stripePromotionCodeId}`);
     } catch (error) {
       if (error instanceof Error) {
-        this.logger.error('Failed to update Stripe promo code', error.stack);
         throw error;
       }
       throw new InternalServerErrorException('Something failed');
@@ -177,10 +163,8 @@ export class StripeService {
   async deleteCoupon(stripeCouponId: string): Promise<void> {
     try {
       await this.stripe.coupons.del(stripeCouponId);
-      this.logger.log(`Stripe coupon deleted: ${stripeCouponId}`);
     } catch (error) {
       if (error instanceof Error) {
-        this.logger.error('Failed to delete Stripe coupon', error.stack);
         throw error;
       }
       throw new InternalServerErrorException('Something failed');
@@ -192,12 +176,8 @@ export class StripeService {
       await this.stripe.promotionCodes.update(stripePromotionCodeId, {
         active: false,
       });
-      this.logger.log(
-        `Promo code disabled in Stripe: ${stripePromotionCodeId}`,
-      );
     } catch (error) {
       if (error instanceof Error) {
-        this.logger.error('Failed to disable Stripe promo code', error.stack);
         throw error;
       }
       throw new InternalServerErrorException('Something failed');

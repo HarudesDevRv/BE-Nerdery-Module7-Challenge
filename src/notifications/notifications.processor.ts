@@ -33,10 +33,6 @@ export class NotificationsProcessor extends WorkerHost {
         `,
       });
     }
-
-    this.logger.log(
-      `Low-stock alert sent to ${userEmails.length} users for "${productName}"`,
-    );
   }
 }
 
@@ -61,7 +57,5 @@ export class PasswordResetProcessor extends WorkerHost {
         <p>If you did not request this, you can safely ignore this email.</p>
       `,
     });
-
-    this.logger.log(`Password reset email sent to ${email}`);
   }
 }

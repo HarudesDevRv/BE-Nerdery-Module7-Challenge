@@ -95,7 +95,6 @@ export class PaymentService {
           data: { status: 'succeeded' },
         });
         paymentId = paymentIntent.id;
-        this.logger.log(`PaymentIntent succeeded: ${paymentIntent.id}`);
         break;
       }
       case 'checkout.session.completed': {
@@ -105,11 +104,8 @@ export class PaymentService {
           data: { status: 'complete' },
         });
         paymentId = session.id;
-        this.logger.log(`Checkout session completed: ${session.id}`);
         break;
       }
-      default:
-        this.logger.log(`Unhandled event type: ${event.type}`);
     }
     if (!paymentId) {
       throw new InternalServerErrorException(
@@ -129,9 +125,6 @@ export class PaymentService {
     }
 
     if (!updatedOrder.addressId) {
-      this.logger.error(
-        `Order ${updatedOrder.orderId} has no delivery address — delivery not created`,
-      );
       return;
     }
 

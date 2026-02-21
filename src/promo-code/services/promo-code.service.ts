@@ -2,7 +2,6 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
-  InternalServerErrorException,
   Logger,
   NotFoundException,
 } from '@nestjs/common';
@@ -33,7 +32,7 @@ export class PromoCodeService {
       where: { code: input.code },
     });
     if (existing) {
-      throw new ConflictException(`Promo code "${input.code}" already exists`);
+      throw new ConflictException(`Promo code already exists`);
     }
 
     const { stripeCouponId, stripePromotionCodeId } =
@@ -46,35 +45,19 @@ export class PromoCodeService {
         minAmount: input.minAmount,
       });
 
-    try {
-      const newCode = await this.prisma.discountCode.create({
-        data: {
-          code: input.code,
-          discountType: input.discountType,
-          discountValue: input.discountValue,
-          expirationDate: input.expirationDate,
-          usageLimit: input.usageLimit,
-          minAmount: input.minAmount,
-          stripeCouponId,
-          stripePromotionCodeId,
-        },
-      });
-      return this.mapper.formatPromoCode(newCode);
-    } catch (dbError) {
-      this.logger.error(
-        'DB write failed after Stripe promo code creation; attempting rollback',
-        dbError,
-      );
-      try {
-        await this.stripe.deleteCoupon(stripeCouponId);
-      } catch (rollbackError) {
-        this.logger.error(
-          `CRITICAL: Stripe coupon orphaned. stripeCouponId=${stripeCouponId}`,
-          rollbackError,
-        );
-      }
-      throw new InternalServerErrorException('Failed to persist promo code');
-    }
+    const newCode = await this.prisma.discountCode.create({
+      data: {
+        code: input.code,
+        discountType: input.discountType,
+        discountValue: input.discountValue,
+        expirationDate: input.expirationDate,
+        usageLimit: input.usageLimit,
+        minAmount: input.minAmount,
+        stripeCouponId,
+        stripePromotionCodeId,
+      },
+    });
+    return this.mapper.formatPromoCode(newCode);
   }
 
   async update(id: string, input: UpdatePromoCodeInput): Promise<PromoCode> {
@@ -134,7 +117,7 @@ export class PromoCodeService {
       where: { discountCodeId: id },
     });
     if (!record) {
-      throw new NotFoundException(`Promo code with id "${id}" not found`);
+      throw new NotFoundException(`Promo code not found`);
     }
     return record;
   }
