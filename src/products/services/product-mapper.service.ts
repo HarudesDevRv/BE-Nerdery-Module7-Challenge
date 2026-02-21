@@ -3,6 +3,7 @@ import { Image } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/client';
 
 type ProductDetailInventory = {
+  inventoryId: string;
   price: Decimal;
   salePrice: Decimal;
   stock: number;
@@ -34,6 +35,7 @@ export class ProductMapperService {
       description: product.description,
       category: product.category.name,
       brand: product.brand.name,
+      inventoryId: inventory?.inventoryId,
       price: inventory?.price.toNumber(),
       salePrice: inventory?.salePrice.toNumber(),
       stock: inventory?.stock,

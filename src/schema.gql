@@ -30,6 +30,7 @@ type ProductWithDetails {
   name: String!
   description: String!
   images: [ProductImage!]!
+  inventoryId: ID!
   price: Float
   salePrice: Float
   stock: Int

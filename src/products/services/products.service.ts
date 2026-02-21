@@ -23,7 +23,7 @@ const productDetailSelect = {
     where: { deletedAt: null, url: { not: null } },
   },
   inventories: {
-    select: { price: true, stock: true, salePrice: true },
+    select: { price: true, stock: true, salePrice: true, inventoryId: true },
     take: 1,
     orderBy: [{ price: 'asc' }, { stock: 'desc' }],
   },

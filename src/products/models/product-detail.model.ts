@@ -1,4 +1,4 @@
-import { Field, Float, Int, ObjectType } from '@nestjs/graphql';
+import { Field, Float, ID, Int, ObjectType } from '@nestjs/graphql';
 import { BaseProduct } from './product.model';
 import { PaginationInfo } from '../../common/models/pagination.model';
 
@@ -16,6 +16,9 @@ export class ProductWithDetails extends BaseProduct {
   readonly category!: string;
 
   readonly brand!: string;
+
+  @Field(() => ID)
+  readonly inventoryId: string;
 
   @Field(() => Float)
   readonly price?: number;
