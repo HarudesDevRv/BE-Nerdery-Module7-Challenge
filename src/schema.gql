@@ -155,6 +155,11 @@ enum DeliveryStatus {
   returned
 }
 
+type Store {
+  storeId: ID!
+  name: String!
+}
+
 type Query {
   productCategories: [Category!]!
   products(filter: ProductFilterInput): ProductsPage!
@@ -166,6 +171,7 @@ type Query {
   myCart: Cart!
   deliveryByOrder(orderId: String!): Delivery!
   myDeliveries: [Delivery!]!
+  getStores: [Store!]!
 }
 
 input ProductFilterInput {
@@ -205,6 +211,9 @@ type Mutation {
   disablePromoCode(id: String!): PromoCode!
   updateDeliveryStatus(deliveryId: String!, input: UpdateDeliveryInput!): Delivery!
   assignDelivery(deliveryId: String!, deliveryPersonId: String!): Delivery!
+  addInventory(input: CreateInventoryInput!): Inventory!
+  updateInventory(inventoryId: ID!, input: UpdateInventoryInput!): Inventory!
+  removeInventory(inventoryId: ID!): Boolean!
 }
 
 input CreateProductInput {
@@ -272,4 +281,20 @@ input UpdatePromoCodeInput {
 input UpdateDeliveryInput {
   status: DeliveryStatus
   estimatedDelivery: DateTime
+}
+
+input CreateInventoryInput {
+  productId: ID!
+  storeId: ID!
+  price: Float!
+  salePrice: Float!
+  stock: Int!
+  isActive: Boolean!
+}
+
+input UpdateInventoryInput {
+  price: Float
+  salePrice: Float
+  stock: Int
+  isActive: Boolean
 }

@@ -190,7 +190,7 @@ model Inventory {
   price       Decimal        @db.Decimal(8, 2)
   salePrice   Decimal        @map("sale_price") @db.Decimal(8, 2)
   stock       Int
-  isActive    Boolean        @map("is_active")
+  isActive    Boolean?       @default(true) @map("is_active") 
   deletedAt   DateTime?      @map("deleted_at")
   orders      OrderProduct[]
   carts       CartItem[]
