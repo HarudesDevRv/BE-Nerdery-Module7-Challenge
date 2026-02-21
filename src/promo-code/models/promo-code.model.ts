@@ -13,18 +13,27 @@ registerEnumType(DiscountType, { name: 'DiscountType' });
 @ObjectType()
 export class PromoCode {
   @Field(() => ID)
-  discountCodeId: string;
-  code: string;
+  readonly discountCodeId!: string;
+
+  readonly code!: string;
+
   @Field(() => DiscountType)
-  discountType: DiscountType;
+  readonly discountType!: DiscountType;
+
   @Field(() => Float)
-  discountValue: number;
-  expirationDate: Date;
+  readonly discountValue!: number;
+
+  readonly expirationDate!: Date;
+
   @Field(() => Int)
-  usageLimit: number;
+  readonly usageLimit!: number;
+
   @Field(() => Int)
-  minAmount?: number;
-  isActive: boolean;
-  stripeCouponId?: string;
-  stripePromotionCodeId?: string;
+  readonly minAmount?: number;
+
+  readonly isActive!: boolean;
+
+  readonly stripeCouponId?: string;
+
+  readonly stripePromotionCodeId?: string;
 }

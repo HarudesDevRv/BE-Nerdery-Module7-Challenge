@@ -5,14 +5,17 @@ import { IsString, MaxLength, IsUUID } from 'class-validator';
 export class CreateProductInput {
   @IsString()
   @MaxLength(100)
-  name: string;
+  readonly name!: string;
+
   @IsString()
   @MaxLength(1000)
-  description: string;
+  readonly description!: string;
+
   @Field(() => ID)
-  @IsUUID()
-  categoryId: string;
+  @IsUUID(4)
+  readonly categoryId!: string;
+
   @Field(() => ID)
-  @IsUUID()
-  brandId: string;
+  @IsUUID(4)
+  readonly brandId!: string;
 }

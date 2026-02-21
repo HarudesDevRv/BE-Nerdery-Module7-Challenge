@@ -15,39 +15,53 @@ registerEnumType(OrderStatus, { name: 'OrderStatus' });
 @ObjectType()
 export class OrderItem {
   @Field(() => ID)
-  inventoryId: string;
-  productName: string;
+  readonly inventoryId!: string;
+
+  readonly productName!: string;
+
   @Field(() => Int)
-  amount: number;
+  readonly amount!: number;
+
   @Field(() => Float)
-  price: number;
+  readonly price!: number;
 }
 
 @ObjectType()
 export class OrderPromoCode {
-  code: string;
+  readonly code!: string;
+
   @Field(() => DiscountType)
-  discountType: DiscountType;
+  readonly discountType!: DiscountType;
+
   @Field(() => Float)
-  discountValue: number;
+  readonly discountValue!: number;
 }
 
 @ObjectType()
 export class Order {
   @Field(() => ID)
-  orderId: string;
+  readonly orderId!: string;
+
   @Field(() => ID)
-  paymentId?: string;
+  readonly paymentId?: string;
+
   @Field({ nullable: true })
-  guestEmail?: string;
-  items: OrderItem[];
+  readonly guestEmail?: string;
+
+  readonly items: OrderItem[];
+
   @Field(() => Float)
-  subtotal: number;
+  readonly subtotal!: number;
+
   @Field(() => Float)
-  total: number;
+  readonly total!: number;
+
   @Field(() => OrderStatus)
-  status: OrderStatus;
-  promoCodes?: OrderPromoCode[];
-  createdAt: Date;
-  updatedAt: Date;
+  readonly status!: OrderStatus;
+
+  readonly promoCodes?: OrderPromoCode[];
+
+  readonly createdAt!: Date;
+
+  readonly updatedAt!: Date;
 }

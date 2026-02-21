@@ -2,35 +2,37 @@ import { Type } from 'class-transformer';
 import {
   IsArray,
   IsInt,
+  IsISO4217CurrencyCode,
   IsPositive,
   IsString,
-  Length,
+  IsUUID,
   ValidateNested,
 } from 'class-validator';
 
 export class CheckoutItemDto {
   @IsString()
-  @Length(3, 3)
-  currency: string;
+  @IsISO4217CurrencyCode()
+  readonly currency!: string;
 
   @IsInt()
   @IsPositive()
-  unitAmount: number;
+  readonly unitAmount!: number;
 
   @IsString()
-  productName: string;
+  readonly productName!: string;
 
   @IsInt()
   @IsPositive()
-  quantity: number;
+  readonly quantity!: number;
 }
 
 export class CreateCheckoutSessionDto {
   @IsString()
-  orderId: string;
+  @IsUUID(4)
+  readonly orderId!: string;
 
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => CheckoutItemDto)
-  items: CheckoutItemDto[];
+  readonly items!: CheckoutItemDto[];
 }

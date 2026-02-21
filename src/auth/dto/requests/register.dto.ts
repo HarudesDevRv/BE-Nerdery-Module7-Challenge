@@ -4,6 +4,8 @@ import {
   MinLength,
   MaxLength,
   IsOptional,
+  Length,
+  IsEnum,
 } from 'class-validator';
 import { Role } from '@prisma/client';
 
@@ -22,9 +24,10 @@ export class RegisterDto {
   readonly lastName!: string;
 
   @IsString()
-  @MinLength(8)
+  @Length(8, 16)
   readonly password!: string;
 
   @IsOptional()
+  @IsEnum(Role)
   readonly role: Role;
 }

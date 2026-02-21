@@ -7,11 +7,11 @@ export class ManagerProductPaginationInput {
   @IsOptional()
   @IsInt()
   @Min(1)
-  page?: number;
+  readonly page?: number;
 
   @Field(() => Int, { defaultValue: 10 })
   @IsOptional()
   @IsInt()
   @Min(1)
-  limit?: number;
+  readonly limit?: number;
 }

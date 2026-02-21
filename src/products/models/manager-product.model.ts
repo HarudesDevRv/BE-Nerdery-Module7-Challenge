@@ -5,30 +5,36 @@ import { PaginationInfo } from '../../common/models/pagination.model';
 @ObjectType()
 export class Inventory {
   @Field(() => ID)
-  inventoryId: string;
+  readonly inventoryId!: string;
+
   @Field(() => ID)
-  productId: string;
+  readonly productId!: string;
+
   @Field(() => ID)
-  storeId: string;
+  readonly storeId!: string;
+
   @Field(() => Float)
-  price?: number;
+  readonly price?: number;
+
   @Field(() => Float)
-  salePrice?: number;
+  readonly salePrice?: number;
+
   @Field(() => Int)
-  stock?: number;
-  isActive: boolean;
+  readonly stock?: number;
+
+  readonly isActive!: boolean;
 }
 
 @ObjectType()
 export class ManagerProduct extends Product {
-  inventories: Inventory[];
+  readonly inventories!: Inventory[];
 }
 
 @ObjectType()
 export class ManagerProductsPage {
   @Field(() => [ManagerProduct])
-  items: ManagerProduct[];
+  readonly items!: ManagerProduct[];
 
   @Field(() => PaginationInfo)
-  pagination: PaginationInfo;
+  readonly pagination!: PaginationInfo;
 }

@@ -1,6 +1,6 @@
 import { Field, InputType, registerEnumType } from '@nestjs/graphql';
 import { DeliveryStatus } from '@prisma/client';
-import { IsString, IsOptional } from 'class-validator';
+import { IsString, IsOptional, IsEnum, IsDate } from 'class-validator';
 
 registerEnumType(DeliveryStatus, { name: 'DeliveryStatus' });
 
@@ -8,8 +8,11 @@ registerEnumType(DeliveryStatus, { name: 'DeliveryStatus' });
 export class UpdateDeliveryInput {
   @IsString()
   @IsOptional()
+  @IsEnum(DeliveryStatus)
   @Field(() => DeliveryStatus)
-  status?: DeliveryStatus;
+  readonly status?: DeliveryStatus;
+
   @IsOptional()
-  estimatedDelivery?: Date;
+  @IsDate()
+  readonly estimatedDelivery?: Date;
 }

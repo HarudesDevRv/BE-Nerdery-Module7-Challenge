@@ -14,7 +14,6 @@ import {
   IsDate,
   Min,
 } from 'class-validator';
-import { Type } from 'class-transformer';
 
 registerEnumType(OrderStatus, { name: 'OrderStatus' });
 
@@ -24,32 +23,36 @@ export class OrderFilterInput {
   @IsOptional()
   @IsInt()
   @Min(0)
-  offset?: number;
+  readonly offset?: number;
+
   @Field(() => Int, { defaultValue: 10 })
   @IsOptional()
   @IsInt()
   @Min(1)
-  limit?: number;
+  readonly limit?: number;
+
   @IsOptional()
   @IsDate()
-  @Type(() => Date)
-  fromDate?: Date;
+  readonly fromDate?: Date;
+
   @IsOptional()
   @IsDate()
-  @Type(() => Date)
-  toDate?: Date;
+  readonly toDate?: Date;
+
   @IsOptional()
   @IsEnum(OrderStatus)
   @Field(() => OrderStatus)
-  status?: OrderStatus;
+  readonly status?: OrderStatus;
+
   @Field(() => Float)
   @IsOptional()
   @IsNumber()
   @Min(0)
-  minTotal?: number;
+  readonly minTotal?: number;
+
   @Field(() => Float)
   @IsOptional()
   @IsNumber()
   @Min(0)
-  maxTotal?: number;
+  readonly maxTotal?: number;
 }

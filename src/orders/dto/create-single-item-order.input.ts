@@ -1,18 +1,23 @@
 import { Field, ID, InputType } from '@nestjs/graphql';
-import { IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
+import {
+  IsISO4217CurrencyCode,
+  IsOptional,
+  IsString,
+  IsUUID,
+} from 'class-validator';
 
 @InputType()
 export class CreateSingleItemOrderInput {
   @Field(() => ID)
   @IsUUID()
-  inventoryId: string;
+  readonly inventoryId: string;
 
   @IsString()
-  @MaxLength(3)
-  currency: string;
+  @IsISO4217CurrencyCode()
+  readonly currency: string;
 
-  @Field(() => ID, { nullable: true })
-  @IsUUID()
+  @Field(() => ID)
+  @IsUUID(4)
   @IsOptional()
-  addressId?: string;
+  readonly addressId?: string;
 }

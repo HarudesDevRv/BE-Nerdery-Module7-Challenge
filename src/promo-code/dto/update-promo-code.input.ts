@@ -4,18 +4,21 @@ import { IsBoolean, IsInt, IsOptional, Min } from 'class-validator';
 @InputType()
 export class UpdatePromoCodeInput {
   @IsOptional()
-  expirationDate?: Date;
+  readonly expirationDate?: Date;
+
   @Field(() => Int)
   @IsOptional()
   @IsInt()
   @Min(1)
-  usageLimit?: number;
+  readonly usageLimit?: number;
+
   @Field(() => Int)
   @IsOptional()
   @IsInt()
   @Min(0)
-  minAmount?: number;
+  readonly minAmount?: number;
+
   @IsOptional()
   @IsBoolean()
-  isActive?: boolean;
+  readonly isActive?: boolean;
 }

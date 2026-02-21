@@ -2,8 +2,8 @@ import { Expose } from 'class-transformer';
 
 export class PaymentIntentResponseDto {
   @Expose()
-  clientSecret: string | null;
+  readonly clientSecret: string;
 
   @Expose()
-  paymentIntentId: string;
+  readonly paymentIntentId: string;
 }

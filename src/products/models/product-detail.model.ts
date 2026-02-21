@@ -5,22 +5,27 @@ import { PaginationInfo } from '../../common/models/pagination.model';
 @ObjectType()
 export class ProductsPage {
   @Field(() => [ProductWithDetails])
-  items: ProductWithDetails[];
+  readonly items!: ProductWithDetails[];
 
   @Field(() => PaginationInfo)
-  pagination: PaginationInfo;
+  readonly pagination!: PaginationInfo;
 }
 
 @ObjectType()
 export class ProductWithDetails extends BaseProduct {
-  category: string;
-  brand: string;
+  readonly category!: string;
+
+  readonly brand!: string;
+
   @Field(() => Float)
-  price?: number;
+  readonly price?: number;
+
   @Field(() => Float)
-  salePrice?: number;
+  readonly salePrice?: number;
+
   @Field(() => Int)
-  stock?: number;
+  readonly stock?: number;
+
   @Field(() => Int)
-  likesCount?: number;
+  readonly likesCount?: number;
 }

@@ -1,14 +1,21 @@
-import { IsInt, IsString, IsPositive, Length } from 'class-validator';
+import {
+  IsInt,
+  IsString,
+  IsPositive,
+  IsUUID,
+  IsISO4217CurrencyCode,
+} from 'class-validator';
 
 export class CreatePaymentIntentDto {
   @IsString()
-  orderId: string;
+  @IsUUID(4)
+  readonly orderId!: string;
 
   @IsInt()
   @IsPositive()
-  amount: number;
+  readonly amount!: number;
 
   @IsString()
-  @Length(3, 3)
-  currency: string;
+  @IsISO4217CurrencyCode()
+  readonly currency!: string;
 }

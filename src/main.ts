@@ -1,4 +1,5 @@
 import { NestFactory } from '@nestjs/core';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 import { NestExpressApplication } from '@nestjs/platform-express';
@@ -17,11 +18,24 @@ async function bootstrap() {
   app.enableCors();
   app.use(helmet());
   app.set('query parser', 'extended');
+
+  const config = new DocumentBuilder()
+    .setTitle('Cats example')
+    .setDescription('The cats API description')
+    .setVersion('1.0')
+    .addTag('cats')
+    .build();
+  const documentFactory = () => SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api', app, documentFactory);
+
   await app.listen(PORT ?? 3000);
 }
 bootstrap()
   .then(() => {
     console.log(`Server running on http://localhost:${PORT}`);
+    console.log(
+      `You can see the REST Api documentation on http://localhost:${PORT}/api`,
+    );
   })
   .catch((error) => {
     console.error(error);

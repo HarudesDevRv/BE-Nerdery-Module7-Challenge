@@ -2,21 +2,27 @@ import { ObjectType, Field, ID, Int, Float } from '@nestjs/graphql';
 
 @ObjectType()
 export class CartItem {
-  productId: string;
-  productName: string;
+  readonly productId!: string;
+
+  readonly productName!: string;
+
   @Field(() => Int)
-  amount: number;
+  readonly amount!: number;
+
   @Field(() => Float)
-  unitPrice: number;
+  readonly unitPrice!: number;
+
   @Field(() => Float)
-  subtotal: number;
+  readonly subtotal!: number;
 }
 
 @ObjectType()
 export class Cart {
   @Field(() => ID)
-  cartId: string;
-  items: CartItem[];
+  readonly cartId!: string;
+
+  readonly items!: CartItem[];
+
   @Field(() => Float)
-  total: number;
+  readonly total!: number;
 }

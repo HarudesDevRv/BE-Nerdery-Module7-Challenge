@@ -6,13 +6,20 @@ registerEnumType(DeliveryStatus, { name: 'DeliveryStatus' });
 @ObjectType()
 export class Delivery {
   @Field(() => ID)
-  deliveryId: string;
-  orderId: string;
+  readonly deliveryId: string;
+
+  readonly orderId: string;
+
   @Field(() => DeliveryStatus)
-  status: DeliveryStatus;
-  deliveryPersonId?: string;
-  estimatedDelivery?: Date;
-  deliveredAt?: Date;
-  createdAt: Date;
-  updatedAt: Date;
+  readonly status: DeliveryStatus;
+
+  readonly deliveryPersonId?: string;
+
+  readonly estimatedDelivery?: Date;
+
+  readonly deliveredAt?: Date;
+
+  readonly createdAt: Date;
+
+  readonly updatedAt: Date;
 }

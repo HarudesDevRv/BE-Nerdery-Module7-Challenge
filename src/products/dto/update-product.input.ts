@@ -6,5 +6,5 @@ import { IsBoolean, IsOptional } from 'class-validator';
 export class UpdateProductInput extends PartialType(CreateProductInput) {
   @IsBoolean()
   @IsOptional()
-  isActive?: boolean;
+  readonly isActive?: boolean;
 }

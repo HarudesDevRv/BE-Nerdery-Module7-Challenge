@@ -1,20 +1,25 @@
 import { Field, ID, InputType } from '@nestjs/graphql';
-import { IsEmail, IsString, IsUUID, MaxLength } from 'class-validator';
+import {
+  IsEmail,
+  IsISO4217CurrencyCode,
+  IsString,
+  IsUUID,
+} from 'class-validator';
 
 @InputType()
 export class CreateGuestOrderInput {
   @Field(() => ID)
-  @IsUUID()
-  inventoryId: string;
+  @IsUUID(4)
+  readonly inventoryId!: string;
 
   @IsEmail()
-  email: string;
+  readonly email!: string;
 
   @IsString()
-  @MaxLength(3)
-  currency: string;
+  @IsISO4217CurrencyCode()
+  readonly currency!: string;
 
   @Field(() => ID)
   @IsUUID()
-  addressId: string;
+  readonly addressId!: string;
 }

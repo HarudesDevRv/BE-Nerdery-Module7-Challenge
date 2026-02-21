@@ -20,22 +20,27 @@ export class CreatePromoCodeInput {
   @IsString()
   @MinLength(3)
   @MaxLength(20)
-  code: string;
+  readonly code!: string;
+
   @Field(() => DiscountType)
   @IsEnum(DiscountType)
-  discountType: DiscountType;
+  readonly discountType!: DiscountType;
+
   @Field(() => Float)
   @IsNumber()
   @IsPositive()
-  discountValue: number;
-  expirationDate: Date;
+  readonly discountValue!: number;
+
+  readonly expirationDate!: Date;
+
   @Field(() => Int)
   @IsInt()
   @Min(1)
-  usageLimit: number;
+  readonly usageLimit!: number;
+
   @Field(() => Int)
   @IsOptional()
   @IsInt()
   @Min(0)
-  minAmount?: number;
+  readonly minAmount?: number;
 }
