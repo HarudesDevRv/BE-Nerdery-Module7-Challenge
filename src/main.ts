@@ -7,6 +7,8 @@ import { graphqlUploadExpress } from 'graphql-upload-ts';
 import helmet from 'helmet';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { PrismaExceptionFilter } from './common/filters/prisma-exception.filter';
+import { StripeExceptionFilter } from './common/filters/stripe-exception.filter';
+import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 
 const PORT = process.env.PORT || 3000;
 async function bootstrap() {
@@ -14,7 +16,12 @@ async function bootstrap() {
     rawBody: true,
   });
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
-  app.useGlobalFilters(new HttpExceptionFilter(), new PrismaExceptionFilter());
+  app.useGlobalFilters(
+    new AllExceptionsFilter(),
+    new HttpExceptionFilter(),
+    new PrismaExceptionFilter(),
+    new StripeExceptionFilter(),
+  );
   app.use(graphqlUploadExpress());
   app.enableCors();
   app.use(helmet());
