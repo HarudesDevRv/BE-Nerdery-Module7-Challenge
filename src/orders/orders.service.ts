@@ -121,6 +121,14 @@ export class OrdersService {
       throw new BadRequestException('Your cart is empty');
     }
 
+    for (const item of cart.products) {
+      if (item.inventory.stock < item.amount) {
+        throw new BadRequestException(
+          `Insufficient stock for "${item.inventory.product.name}": requested ${item.amount}, available ${item.inventory.stock}`,
+        );
+      }
+    }
+
     const subtotal = cart.products.reduce(
       (accumulator, item) =>
         (accumulator += item.amount * item.inventory.salePrice.toNumber()),

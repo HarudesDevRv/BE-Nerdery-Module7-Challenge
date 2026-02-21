@@ -1,4 +1,9 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../../common/services/prisma/prisma.service';
 import { AddToCartInput } from '../dto/add-to-cart.input';
 import { UpdateCartItemInput } from '../dto/update-cart-item.input';
@@ -56,6 +61,20 @@ export class CartService {
   async addItem(userId: string, input: AddToCartInput) {
     const cart = await this.getUserCart(userId);
 
+    const inventory = await this.prisma.deletedAtFilter.inventory.findUnique({
+      where: { inventoryId: input.inventoryId },
+    });
+
+    if (!inventory || !inventory.isActive) {
+      throw new NotFoundException('Inventory item not found');
+    }
+
+    if (inventory.stock < input.amount) {
+      throw new BadRequestException(
+        `Insufficient stock: requested ${input.amount}, available ${inventory.stock}`,
+      );
+    }
+
     const newCart = await this.prisma.cartItem.create({
       data: {
         cartId: cart.cartId,
@@ -70,6 +89,20 @@ export class CartService {
 
   async updateItem(userId: string, input: UpdateCartItemInput) {
     const cart = await this.getUserCart(userId);
+
+    const inventory = await this.prisma.deletedAtFilter.inventory.findUnique({
+      where: { inventoryId: input.inventoryId },
+    });
+
+    if (!inventory || !inventory.isActive) {
+      throw new NotFoundException('Inventory item not found');
+    }
+
+    if (inventory.stock < input.amount) {
+      throw new BadRequestException(
+        `Insufficient stock: requested ${input.amount}, available ${inventory.stock}`,
+      );
+    }
 
     const newCart = await this.prisma.cartItem.update({
       where: {
