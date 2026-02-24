@@ -85,15 +85,7 @@ export class ProductsService {
 
     const formattedProducts = products
       .filter((product) => product.inventories.length > 0)
-      .map((product) => {
-        const images = product.images.flatMap((img) =>
-          img.url != null ? [{ imageId: img.imageId, url: img.url }] : [],
-        );
-        return this.productUtility.formatDetailedProduct({
-          ...product,
-          images,
-        });
-      });
+      .map((product) => this.productUtility.formatDetailedProduct(product));
 
     const totalPages = Math.ceil(totalItems / limit);
 
@@ -117,10 +109,8 @@ export class ProductsService {
     if (!product) {
       throw new NotFoundException('Product not found');
     }
-    const images = product.images.flatMap((img) =>
-      img.url != null ? [{ imageId: img.imageId, url: img.url }] : [],
-    );
-    return this.productUtility.formatDetailedProduct({ ...product, images });
+
+    return this.productUtility.formatDetailedProduct(product);
   }
 
   async getByManagerId(
