@@ -76,6 +76,14 @@ describe('ProductsService', () => {
     });
   });
 
+  it('Should throw NotFoundException for unknown category', async () => {
+    mockPrismaService.category.findUnique.mockResolvedValue(null);
+
+    await expect(service.findAll({ category: 'Unknown' })).rejects.toThrow(
+      NotFoundException,
+    );
+  });
+
   //Manager products retrieval
 
   it('Should return paginated manager products', async () => {
@@ -125,12 +133,12 @@ describe('ProductsService', () => {
     });
   });
 
-  it('Should throw NotFoundException for unknown category', async () => {
-    mockPrismaService.category.findUnique.mockResolvedValue(null);
-
-    await expect(service.findAll({ category: 'Unknown' })).rejects.toThrow(
-      NotFoundException,
+  it('Should throw NotFoundException for unknown product', async () => {
+    mockPrismaService.deletedAtFilter.product.findUnique.mockResolvedValue(
+      null,
     );
+
+    await expect(service.findOne('pid1')).rejects.toThrow(NotFoundException);
   });
 
   //Product create
@@ -227,24 +235,18 @@ describe('ProductsService', () => {
 
   it('Should throw NotFoundException for unknown category on product update', async () => {
     mockPrismaService.category.findUnique.mockResolvedValue(null);
-    mockPrismaService.brand.findUnique.mockResolvedValue({
-      brandId: 'bid2',
-    });
 
-    await expect(service.update('pid2', {}, 'mid1')).rejects.toThrow(
-      NotFoundException,
-    );
+    await expect(
+      service.update('pid2', { categoryId: 'cid1' }, 'mid1'),
+    ).rejects.toThrow(NotFoundException);
   });
 
   it('Should throw NotFoundException for unknown brand on product update', async () => {
     mockPrismaService.brand.findUnique.mockResolvedValue(null);
-    mockPrismaService.category.findUnique.mockResolvedValue({
-      categoryId: 'cid2',
-    });
 
-    await expect(service.update('pid2', {}, 'mid1')).rejects.toThrow(
-      NotFoundException,
-    );
+    await expect(
+      service.update('pid2', { brandId: 'bid1' }, 'mid1'),
+    ).rejects.toThrow(NotFoundException);
   });
 
   it('Should throw ForbiddenException for unauthorized operation on product update', async () => {
