@@ -11,6 +11,10 @@ const mockPrismaService = {
     findUnique: jest.fn(),
     findMany: jest.fn(),
   },
+  brand: {
+    findUnique: jest.fn(),
+    findMany: jest.fn(),
+  },
   product: {
     create: jest.fn(),
     update: jest.fn(),
@@ -29,6 +33,13 @@ const mockPrismaService = {
   user: { findUnique: jest.fn() },
   userLike: { upsert: jest.fn() },
   image: { create: jest.fn(), update: jest.fn() },
+};
+
+const productCreateInput = {
+  name: 'Widget 2',
+  description: 'A widget 2',
+  brandId: 'bid2',
+  categoryId: 'cid2',
 };
 
 const fakeProduct = {
@@ -76,6 +87,8 @@ describe('ProductsService', () => {
     expect(service).toBeDefined();
   });
 
+  //Public categories retrieval
+
   it('Should retrieve the category list', async () => {
     mockPrismaService.category.findMany.mockResolvedValue([
       { categoryId: 'cid1', name: 'Gadgets' },
@@ -85,6 +98,8 @@ describe('ProductsService', () => {
 
     expect(categories).toEqual([{ categoryId: 'cid1', name: 'Gadgets' }]);
   });
+
+  //Public products retrieval
 
   it('Should return paginated products', async () => {
     mockPrismaService.$transaction.mockResolvedValue([[fakeProduct], 1]);
@@ -114,6 +129,8 @@ describe('ProductsService', () => {
     });
   });
 
+  //Manager products retrieval
+
   it('Should return paginated manager products', async () => {
     mockPrismaService.$transaction.mockResolvedValue([[fakeManagerProduct], 1]);
 
@@ -137,6 +154,8 @@ describe('ProductsService', () => {
       hasNextPage: false,
     });
   });
+
+  //Public findOne
 
   it('Should return a formatted product', async () => {
     mockPrismaService.deletedAtFilter.product.findUnique.mockResolvedValue(
@@ -167,6 +186,68 @@ describe('ProductsService', () => {
     );
   });
 
+  //Product create
+
+  it('Should create a product', async () => {
+    const fakeCreatedManagerProduct = {
+      productId: 'pid1',
+      managerId: 'mid1',
+      name: 'Widget 2',
+      description: 'A widget 2',
+      brandId: 'bid2',
+      categoryId: 'cid2',
+      isACtive: true,
+    };
+    mockPrismaService.category.findUnique.mockResolvedValue({
+      categoryId: 'cid2',
+    });
+    mockPrismaService.brand.findUnique.mockResolvedValue({
+      brandId: 'bid2',
+    });
+
+    mockPrismaService.product.create.mockResolvedValue(
+      fakeCreatedManagerProduct,
+    );
+
+    const product = await service.create(productCreateInput, 'mid1');
+
+    expect(product).toEqual({
+      managerId: 'mid1',
+      productId: 'pid1',
+      name: 'Widget 2',
+      description: 'A widget 2',
+      brandId: 'bid2',
+      categoryId: 'cid2',
+      isACtive: true,
+      images: [],
+      inventories: [],
+    });
+  });
+
+  it('Should throw NotFoundException for unknown category on product create', async () => {
+    mockPrismaService.category.findUnique.mockResolvedValue(null);
+    mockPrismaService.brand.findUnique.mockResolvedValue({
+      brandId: 'bid2',
+    });
+
+    await expect(service.create(productCreateInput, 'mid1')).rejects.toThrow(
+      NotFoundException,
+    );
+  });
+
+  it('Should throw NotFoundException for unknown brand on product create', async () => {
+    mockPrismaService.brand.findUnique.mockResolvedValue(null);
+    mockPrismaService.category.findUnique.mockResolvedValue({
+      categoryId: 'cid2',
+    });
+
+    await expect(service.create(productCreateInput, 'mid1')).rejects.toThrow(
+      NotFoundException,
+    );
+  });
+
+  //Product update
+
   it('Should update a product', async () => {
     const updateInput = {
       name: 'Widget 2',
@@ -185,6 +266,12 @@ describe('ProductsService', () => {
       categoryId: 'cid2',
       isACtive: false,
     };
+    mockPrismaService.category.findUnique.mockResolvedValue({
+      categoryId: 'cid2',
+    });
+    mockPrismaService.brand.findUnique.mockResolvedValue({
+      brandId: 'bid2',
+    });
 
     mockPrismaService.deletedAtFilter.product.findUnique.mockResolvedValue(
       fakeManagerProduct,
@@ -207,7 +294,7 @@ describe('ProductsService', () => {
     });
   });
 
-  it('Should throw NotFoundException for unknown product', async () => {
+  it('Should throw NotFoundException for unknown product on product update', async () => {
     mockPrismaService.deletedAtFilter.product.findUnique.mockResolvedValue(
       null,
     );
@@ -217,13 +304,114 @@ describe('ProductsService', () => {
     );
   });
 
-  it('Should throw ForbiddenException for unauthorized', async () => {
+  it('Should throw NotFoundException for unknown category on product update', async () => {
+    mockPrismaService.category.findUnique.mockResolvedValue(null);
+    mockPrismaService.brand.findUnique.mockResolvedValue({
+      brandId: 'bid2',
+    });
+
+    await expect(service.update('pid2', {}, 'mid1')).rejects.toThrow(
+      NotFoundException,
+    );
+  });
+
+  it('Should throw NotFoundException for unknown brand on product update', async () => {
+    mockPrismaService.brand.findUnique.mockResolvedValue(null);
+    mockPrismaService.category.findUnique.mockResolvedValue({
+      categoryId: 'cid2',
+    });
+
+    await expect(service.update('pid2', {}, 'mid1')).rejects.toThrow(
+      NotFoundException,
+    );
+  });
+
+  it('Should throw ForbiddenException for unauthorized operation on product update', async () => {
     mockPrismaService.deletedAtFilter.product.findUnique.mockResolvedValue(
       fakeManagerProduct,
     );
 
     await expect(service.update('pid1', {}, 'mid2')).rejects.toThrow(
       ForbiddenException,
+    );
+  });
+
+  //Product delete
+
+  it('Should soft delete a product', async () => {
+    mockPrismaService.deletedAtFilter.product.findUnique.mockResolvedValue({
+      ...fakeManagerProduct,
+      deletedAt: Date(),
+    });
+    const deletedProduct = await service.delete('pid1', 'mid1');
+
+    expect(deletedProduct).toEqual(true);
+  });
+
+  it('Should throw NotFoundException for unknown product on product delete', async () => {
+    mockPrismaService.deletedAtFilter.product.findUnique.mockResolvedValue(
+      null,
+    );
+
+    await expect(service.delete('pid1', 'mid1')).rejects.toThrow(
+      NotFoundException,
+    );
+  });
+
+  it('Should throw ForbiddenException for unauthorized operation on product delete', async () => {
+    mockPrismaService.deletedAtFilter.product.findUnique.mockResolvedValue(
+      fakeManagerProduct,
+    );
+
+    await expect(service.delete('pid1', 'mid2')).rejects.toThrow(
+      ForbiddenException,
+    );
+  });
+
+  //Product toggleLike
+
+  it('Should toggle the like status of a product for a user to true', async () => {
+    mockPrismaService.deletedAtFilter.product.findUnique.mockResolvedValue(
+      fakeManagerProduct,
+    );
+    mockPrismaService.user.findUnique.mockResolvedValue({ userId: 'cid1' });
+    mockPrismaService.userLike.upsert.mockResolvedValue({ isActive: true });
+
+    const likeStatus = await service.toggleLike('pid1', 'uid1', true);
+
+    expect(likeStatus).toEqual(true);
+  });
+
+  it('Should toggle the like status of a product for a user to false', async () => {
+    mockPrismaService.deletedAtFilter.product.findUnique.mockResolvedValue(
+      fakeManagerProduct,
+    );
+    mockPrismaService.user.findUnique.mockResolvedValue({ userId: 'cid1' });
+    mockPrismaService.userLike.upsert.mockResolvedValue({ isActive: false });
+
+    const likeStatus = await service.toggleLike('pid1', 'uid1', false);
+
+    expect(likeStatus).toEqual(false);
+  });
+
+  it('Should throw NotFoundException for unknown product on product delete', async () => {
+    mockPrismaService.deletedAtFilter.product.findUnique.mockResolvedValue(
+      null,
+    );
+
+    await expect(service.toggleLike('pid1', 'uid1', false)).rejects.toThrow(
+      NotFoundException,
+    );
+  });
+
+  it('Should throw NotFoundException for unknown user on product delete', async () => {
+    mockPrismaService.deletedAtFilter.product.findUnique.mockResolvedValue(
+      fakeManagerProduct,
+    );
+    mockPrismaService.user.findUnique.mockResolvedValue(null);
+
+    await expect(service.toggleLike('pid1', 'uid1', false)).rejects.toThrow(
+      NotFoundException,
     );
   });
 });
