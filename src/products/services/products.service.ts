@@ -149,6 +149,20 @@ export class ProductsService {
   }
 
   async create(input: CreateProductInput, managerId: string) {
+    const [category, brand] = await Promise.all([
+      this.prisma.category.findUnique({
+        where: { categoryId: input.categoryId },
+      }),
+      this.prisma.brand.findUnique({ where: { brandId: input.brandId } }),
+    ]);
+
+    if (!category) {
+      throw new NotFoundException('Category not found');
+    }
+    if (!brand) {
+      throw new NotFoundException('Brand not found');
+    }
+
     const newProduct = await this.prisma.product.create({
       data: {
         manager: { connect: { userId: managerId } },
@@ -166,6 +180,24 @@ export class ProductsService {
     input: UpdateProductInput,
     managerId: string,
   ) {
+    const [category, brand] = await Promise.all([
+      input.categoryId
+        ? this.prisma.category.findUnique({
+            where: { categoryId: input.categoryId },
+          })
+        : Promise.resolve(true),
+      input.brandId
+        ? this.prisma.brand.findUnique({ where: { brandId: input.brandId } })
+        : Promise.resolve(true),
+    ]);
+
+    if (!category) {
+      throw new NotFoundException('Category not found');
+    }
+    if (!brand) {
+      throw new NotFoundException('Brand not found');
+    }
+
     const product = await this.prisma.deletedAtFilter.product.findUnique({
       where: { productId },
     });
