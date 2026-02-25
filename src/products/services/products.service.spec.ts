@@ -68,6 +68,18 @@ const fakeManagerProduct = {
   brandId: 'bid1',
 };
 
+const fakeImage = {
+  imageId: 'iid1',
+  productId: 'pid1',
+  url: 'http://example.com/image.jpg',
+  deletedAt: null,
+};
+
+const fakeImageWithProduct = {
+  ...fakeImage,
+  product: { managerId: 'mid1' },
+};
+
 describe('ProductsService', () => {
   let service: ProductsService;
 
@@ -412,6 +424,138 @@ describe('ProductsService', () => {
 
     await expect(service.toggleLike('pid1', 'uid1', false)).rejects.toThrow(
       NotFoundException,
+    );
+  });
+
+  //Image create
+
+  it('Should create an image', async () => {
+    mockPrismaService.deletedAtFilter.product.findUnique.mockResolvedValue(
+      fakeManagerProduct,
+    );
+    mockPrismaService.image.create.mockResolvedValue(fakeImage);
+
+    const image = await service.createImage(
+      'pid1',
+      'mid1',
+      'http://example.com/image.jpg',
+    );
+
+    expect(image).toEqual({
+      imageId: 'iid1',
+      productId: 'pid1',
+      url: 'http://example.com/image.jpg',
+      deletedAt: null,
+    });
+  });
+
+  it('Should throw NotFoundException for unknown product on image create', async () => {
+    mockPrismaService.deletedAtFilter.product.findUnique.mockResolvedValue(
+      null,
+    );
+
+    await expect(service.createImage('pid1', 'mid1')).rejects.toThrow(
+      NotFoundException,
+    );
+  });
+
+  it('Should throw ForbiddenException for unauthorized operation on image create', async () => {
+    mockPrismaService.deletedAtFilter.product.findUnique.mockResolvedValue(
+      fakeManagerProduct,
+    );
+
+    await expect(service.createImage('pid1', 'mid2')).rejects.toThrow(
+      ForbiddenException,
+    );
+  });
+
+  //Image update
+
+  it('Should update an image URL', async () => {
+    const updatedImage = {
+      ...fakeImage,
+      url: 'http://example.com/new-image.jpg',
+    };
+    mockPrismaService.deletedAtFilter.image.findUnique.mockResolvedValue(
+      fakeImageWithProduct,
+    );
+    mockPrismaService.image.update.mockResolvedValue(updatedImage);
+
+    const image = await service.updateImageUrl(
+      'iid1',
+      'http://example.com/new-image.jpg',
+      'mid1',
+    );
+
+    expect(image).toEqual({
+      imageId: 'iid1',
+      productId: 'pid1',
+      url: 'http://example.com/new-image.jpg',
+      deletedAt: null,
+    });
+  });
+
+  it('Should throw NotFoundException for unknown image on image update', async () => {
+    mockPrismaService.deletedAtFilter.image.findUnique.mockResolvedValue(null);
+
+    await expect(
+      service.updateImageUrl(
+        'iid1',
+        'http://example.com/new-image.jpg',
+        'mid1',
+      ),
+    ).rejects.toThrow(NotFoundException);
+  });
+
+  it('Should throw ForbiddenException for unauthorized operation on image update', async () => {
+    mockPrismaService.deletedAtFilter.image.findUnique.mockResolvedValue(
+      fakeImageWithProduct,
+    );
+
+    await expect(
+      service.updateImageUrl(
+        'iid1',
+        'http://example.com/new-image.jpg',
+        'mid2',
+      ),
+    ).rejects.toThrow(ForbiddenException);
+  });
+
+  //Image delete
+
+  it('Should soft delete an image', async () => {
+    const deletedAt = new Date();
+    const deletedImage = { ...fakeImage, deletedAt };
+    mockPrismaService.deletedAtFilter.image.findUnique.mockResolvedValue(
+      fakeImageWithProduct,
+    );
+    mockPrismaService.image.update.mockResolvedValue(deletedImage);
+
+    const image = await service.deleteImage('iid1', 'mid1');
+
+    expect(image).toEqual({
+      imageId: 'iid1',
+      productId: 'pid1',
+      url: 'http://example.com/image.jpg',
+      deletedAt,
+    });
+  });
+
+  it('Should throw NotFoundException for unknown image on image delete', async () => {
+    mockPrismaService.deletedAtFilter.image.findUnique.mockResolvedValue(null);
+
+    await expect(service.deleteImage('iid1', 'mid1')).rejects.toThrow(
+      NotFoundException,
+    );
+  });
+
+  it('Should throw ForbiddenException for unauthorized operation on image delete', async () => {
+    mockPrismaService.deletedAtFilter.image.findUnique.mockResolvedValue(
+      fakeImageWithProduct,
+    );
+
+    await expect(service.deleteImage('iid1', 'mid2')).rejects.toThrow(
+      ForbiddenException,
     );
   });
 });
