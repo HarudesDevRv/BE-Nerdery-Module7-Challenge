@@ -204,6 +204,7 @@ type Mutation {
   createGuestOrder(input: CreateGuestOrderInput!): Order!
   createOrder(input: CreateOrderInput!): Order!
   createSingleItemOrder(input: CreateSingleItemOrderInput!): Order!
+  processOrder(orderId: ID!): Order!
   addToCart(input: AddToCartInput!): Cart!
   updateCartItem(input: UpdateCartItemInput!): Cart!
   removeCartItem(inventoryId: ID!): Cart!
