@@ -21,7 +21,7 @@ type CreatedOrder = {
 };
 
 @Injectable()
-export class OrderUtilsService {
+export class OrderMapperService {
   formatOrder(order: RawOrder) {
     return {
       orderId: order.orderId,

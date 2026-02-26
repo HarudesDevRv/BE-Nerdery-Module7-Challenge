@@ -11,13 +11,13 @@ import { CreateGuestOrderInput } from './dto/create-guest-order.input';
 import { CreateOrderInput } from './dto/create-order.input';
 import { CreateSingleItemOrderInput } from './dto/create-single-item-order.input';
 import { OrderFilterInput } from './dto/order-filter.input';
-import { OrderUtilsService } from './order-utils.service';
+import { OrderMapperService } from './order-mapper.service';
 
 @Injectable()
 export class OrdersService {
   constructor(
     private prisma: PrismaService,
-    private orderUtils: OrderUtilsService,
+    private orderUtils: OrderMapperService,
     private cartService: CartService,
   ) {}
   //TODO: Check the order creation functions to not work with promo codes
