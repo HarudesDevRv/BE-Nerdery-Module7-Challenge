@@ -18,10 +18,6 @@ const productDetailSelect = {
   brand: { select: { name: true } },
   name: true,
   description: true,
-  images: {
-    select: { imageId: true, url: true },
-    where: { deletedAt: null, url: { not: null } },
-  },
   inventories: {
     select: { price: true, stock: true, salePrice: true, inventoryId: true },
     take: 1,

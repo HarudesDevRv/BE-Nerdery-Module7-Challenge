@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/client';
 
 export const productCreateInput = {
@@ -22,7 +23,26 @@ export const fakeProduct = {
     },
   ],
   _count: { userLikes: 3 },
-};
+} satisfies Prisma.ProductGetPayload<{
+  select: {
+    productId: true;
+    category: { select: { name: true } };
+    brand: { select: { name: true } };
+    name: true;
+    description: true;
+    inventories: {
+      select: {
+        price: true;
+        stock: true;
+        salePrice: true;
+        inventoryId: true;
+      };
+    };
+    _count: {
+      select: { userLikes: true };
+    };
+  };
+}>;
 
 export const fakeManagerProduct = {
   managerId: 'mid1',
