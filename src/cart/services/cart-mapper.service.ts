@@ -18,7 +18,7 @@ interface RawCart {
 }
 
 @Injectable()
-export class CartUtilsService {
+export class CartMapperService {
   formatCart(cart: RawCart): Cart {
     return {
       cartId: cart.cartId,

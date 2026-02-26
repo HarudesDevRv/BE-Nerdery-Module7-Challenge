@@ -9,7 +9,7 @@ import {
   Context,
 } from '@nestjs/graphql';
 import { UseGuards } from '@nestjs/common';
-import { OrdersService } from '../orders.service';
+import { OrdersService } from '../services/orders.service';
 import { Order, OrderItem, OrderPromoCode } from '../models/order.model';
 import { CreateOrderInput } from '../dto/create-order.input';
 import { CreateSingleItemOrderInput } from '../dto/create-single-item-order.input';

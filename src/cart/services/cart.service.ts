@@ -9,7 +9,7 @@ import { AddToCartInput } from '../dto/add-to-cart.input';
 import { UpdateCartItemInput } from '../dto/update-cart-item.input';
 import { Cart } from '../models/cart.model';
 import { Prisma } from '@prisma/client';
-import { CartUtilsService } from './cart-utils.service';
+import { CartMapperService } from './cart-mapper.service';
 
 const cartInventoryInclude = {
   cart: {
@@ -25,7 +25,7 @@ const cartInventoryInclude = {
 export class CartService {
   constructor(
     private prisma: PrismaService,
-    private cartUtils: CartUtilsService,
+    private cartUtils: CartMapperService,
   ) {}
 
   private async getUserCart(userId: string) {
