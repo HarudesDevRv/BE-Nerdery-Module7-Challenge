@@ -26,6 +26,7 @@ async function bootstrap() {
   app.enableCors();
   app.use(helmet());
   app.set('query parser', 'extended');
+  app.enableShutdownHooks();
 
   const config = new DocumentBuilder()
     .setTitle('Cats example')
