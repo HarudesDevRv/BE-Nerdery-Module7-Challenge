@@ -52,9 +52,13 @@ export class S3Service {
 
     try {
       const deletedImage = await this.client.send(deleteCommand);
-      return true;
+      return deletedImage.DeleteMarker ?? false;
     } catch (error) {
-      throw new Error('Could not delete file');
+      if (error instanceof Error) {
+        throw new Error('Could not delete file');
+      } else {
+        throw new Error('Unknown error');
+      }
     }
   }
 }
