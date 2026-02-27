@@ -64,7 +64,6 @@ export class StripeService {
         amount,
         currency,
       });
-      console.log(paymentIntent);
       return {
         clientSecret: paymentIntent.client_secret,
         paymentIntentId: paymentIntent.id,

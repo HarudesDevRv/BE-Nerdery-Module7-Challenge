@@ -139,7 +139,6 @@ export class AuthService {
         },
       });
     } catch (error) {
-      console.log(error);
       throw new ConflictException("The token doesn't exist");
     }
   }
