@@ -129,18 +129,22 @@ export class AuthService {
 
   async signout(token: string): Promise<void> {
     // TODO: implement logout (revoke refresh token)
-    try {
-      await this.prisma.refreshToken.update({
-        where: {
-          refreshToken: token,
-        },
-        data: {
-          revoked: true,
-        },
-      });
-    } catch (error) {
+    const refreshToken = await this.prisma.refreshToken.findUnique({
+      where: { refreshToken: token },
+    });
+
+    if (!refreshToken) {
       throw new ConflictException("The token doesn't exist");
     }
+
+    await this.prisma.refreshToken.update({
+      where: {
+        refreshToken: token,
+      },
+      data: {
+        revoked: true,
+      },
+    });
   }
 
   async forgotPassword(email: string): Promise<ResetTokenDto> {
