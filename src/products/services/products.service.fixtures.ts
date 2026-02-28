@@ -1,14 +1,30 @@
-import { Prisma } from '@prisma/client';
+import {
+  Brand,
+  Category,
+  Image,
+  Inventory,
+  Prisma,
+  Product,
+} from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/client';
+import { CreateProductInput } from '../dto/create-product.input';
+import { UpdateProductInput } from '../dto/update-product.input';
 
-export const productCreateInput = {
+type ProductWithInventories = Partial<Product> & {
+  inventories: Partial<Inventory>[];
+  category: Partial<Category>;
+  brand: Partial<Brand>;
+  _count: { userLikes: number };
+};
+
+export const productCreateInput: CreateProductInput = {
   name: 'Widget 2',
   description: 'A widget 2',
   brandId: 'bid2',
   categoryId: 'cid2',
 };
 
-export const fakeProduct = {
+export const fakeProduct: ProductWithInventories = {
   productId: 'pid1',
   name: 'Widget',
   description: 'A widget',
@@ -44,7 +60,7 @@ export const fakeProduct = {
   };
 }>;
 
-export const fakeManagerProduct = {
+export const fakeManagerProduct: Partial<Product> = {
   managerId: 'mid1',
   productId: 'pid1',
   name: 'Widget',
@@ -53,42 +69,44 @@ export const fakeManagerProduct = {
   brandId: 'bid1',
 };
 
-export const fakeImage = {
+export const fakeImage: Partial<Image> = {
   imageId: 'iid1',
   productId: 'pid1',
   url: 'http://example.com/image.jpg',
   deletedAt: null,
 };
 
-export const fakeImageWithProduct = {
+export const fakeImageWithProduct: Partial<Image> & {
+  product: Partial<Product>;
+} = {
   ...fakeImage,
   product: { managerId: 'mid1' },
 };
 
-export const fakeCreatedManagerProduct = {
+export const fakeCreatedManagerProduct: Partial<Product> = {
   productId: 'pid1',
   managerId: 'mid1',
   name: 'Widget 2',
   description: 'A widget 2',
   brandId: 'bid2',
   categoryId: 'cid2',
-  isACtive: true,
+  isActive: true,
 };
 
-export const updateInput = {
+export const updateInput: Partial<UpdateProductInput> = {
   name: 'Widget 2',
   description: 'A widget 2',
   brandId: 'bid2',
   categoryId: 'cid2',
-  isACtive: false,
+  isActive: false,
 };
 
-export const fakeUpdatedManagerProduct = {
+export const fakeUpdatedManagerProduct: Partial<Product> = {
   productId: 'pid1',
   managerId: 'mid1',
   name: 'Widget 2',
   description: 'A widget 2',
   brandId: 'bid2',
   categoryId: 'cid2',
-  isACtive: false,
+  isActive: false,
 };

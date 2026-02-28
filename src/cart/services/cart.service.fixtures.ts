@@ -1,48 +1,67 @@
+import { Cart, CartItem, Inventory, Product } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/client';
+import { UpdateCartItemInput } from '../dto/update-cart-item.input';
+import { AddToCartInput } from '../dto/add-to-cart.input';
 
-export const fakeUserId = 'uid1';
-export const fakeCartId = 'cartid1';
-export const fakeInventoryId = 'invid1';
+type CartProduct = Partial<CartItem> & {
+  inventory: Partial<Inventory> & { product: Partial<Product> };
+};
 
-export const addToCartInput = {
-  inventoryId: fakeInventoryId,
+type RawCart = Partial<Cart> & { products: Partial<CartProduct>[] };
+
+type CartItemWithCart = Partial<CartItem> & { cart: Partial<Cart> };
+
+type CartItemProduct = {
+  productId: string;
+  productName: string;
+  amount: number;
+  unitPrice: number;
+  subtotal: number;
+};
+
+type FormattedCart = Partial<Cart> & {
+  total: number;
+  items: CartItemProduct[];
+};
+
+export const addToCartInput: AddToCartInput = {
+  inventoryId: 'invid1',
   amount: 2,
 };
 
-export const updateCartItemInput = {
-  inventoryId: fakeInventoryId,
+export const updateCartItemInput: UpdateCartItemInput = {
+  inventoryId: 'invid1',
   amount: 3,
 };
 
-export const fakeUserCart = {
-  cartId: fakeCartId,
-  userId: fakeUserId,
+export const fakeUserCart: Partial<Cart> = {
+  cartId: 'cartid1',
+  userId: 'uid1',
 };
 
-export const fakeInventory = {
-  inventoryId: fakeInventoryId,
+export const fakeInventory: Partial<Inventory> = {
+  inventoryId: 'invid1',
   isActive: true,
   stock: 10,
   salePrice: Decimal(29.99),
   deletedAt: null,
 };
 
-export const fakeInventoryInactive = {
+export const fakeInventoryInactive: Partial<Inventory> = {
   ...fakeInventory,
   isActive: false,
 };
 
-export const fakeInventoryOutOfStock = {
+export const fakeInventoryOutOfStock: Partial<Inventory> = {
   ...fakeInventory,
-  stock: 1, // less than amounts requested (2 and 3)
+  stock: 1,
 };
 
-const fakeCartProduct = {
-  cartItemId: 'cartitemid1',
-  inventoryId: fakeInventoryId,
+const fakeCartProduct: CartProduct = {
+  inventoryId: 'invid1',
   amount: 2,
   inventory: {
-    inventoryId: fakeInventoryId,
+    inventoryId: 'invid1',
     salePrice: Decimal(29.99),
     product: {
       productId: 'pid1',
@@ -51,28 +70,27 @@ const fakeCartProduct = {
   },
 };
 
-export const fakeRawCart = {
-  cartId: fakeCartId,
-  userId: fakeUserId,
+export const fakeRawCart: RawCart = {
+  cartId: 'cartid1',
+  userId: 'uid1',
   products: [fakeCartProduct],
 };
 
-export const fakeRawCartEmpty = {
-  cartId: fakeCartId,
-  userId: fakeUserId,
+export const fakeRawCartEmpty: RawCart = {
+  cartId: 'cartid1',
+  userId: 'uid1',
   products: [],
 };
 
-export const fakeCartItemWithCart = {
-  cartItemId: 'cartitemid1',
-  cartId: fakeCartId,
-  inventoryId: fakeInventoryId,
+export const fakeCartItemWithCart: CartItemWithCart = {
+  cartId: 'cartid1',
+  inventoryId: 'invid1',
   amount: 2,
   cart: fakeRawCart,
 };
 
-export const fakeFormattedCart = {
-  cartId: fakeCartId,
+export const fakeFormattedCart: FormattedCart = {
+  cartId: 'cartid1',
   total: 59.98,
   items: [
     {
@@ -85,8 +103,8 @@ export const fakeFormattedCart = {
   ],
 };
 
-export const fakeFormattedEmptyCart = {
-  cartId: fakeCartId,
+export const fakeFormattedEmptyCart: FormattedCart = {
+  cartId: 'cartid1',
   total: 0,
   items: [],
 };

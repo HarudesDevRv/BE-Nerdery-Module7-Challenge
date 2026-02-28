@@ -1,4 +1,20 @@
-import { Order, Payment } from '@prisma/client';
+import { Order, Payment, Product } from '@prisma/client';
+
+type PaymentIntent = {
+  clientSecret: string;
+  paymentIntentId: string;
+  amount: number;
+  currency: string;
+  status: string;
+};
+
+type CheckoutSession = {
+  url: string;
+  checkoutSessionId: string;
+  amount: number;
+  currency: string;
+  status: string;
+};
 
 export const createMockStripeService = () => ({
   createPaymentIntent: jest.fn(),
@@ -15,14 +31,15 @@ export const fakePendingOrder: Partial<Order> = {
   addressId: null,
 };
 
-export const fakePaidOrder = {
-  orderId: 'oid1',
-  status: 'paid',
-  addressId: null,
-  products: [],
-};
+export const fakePaidOrder: Partial<Order> & { products: Partial<Product>[] } =
+  {
+    orderId: 'oid1',
+    status: 'paid',
+    addressId: null,
+    products: [],
+  };
 
-export const fakePaymentIntent = {
+export const fakePaymentIntent: PaymentIntent = {
   clientSecret: 'pi_secret_123',
   paymentIntentId: 'pi_123',
   amount: 9999,
@@ -30,7 +47,7 @@ export const fakePaymentIntent = {
   status: 'requires_payment_method',
 };
 
-export const fakeCheckoutSession = {
+export const fakeCheckoutSession: CheckoutSession = {
   url: 'https://checkout.stripe.com/session',
   checkoutSessionId: 'cs_123',
   amount: 9999,

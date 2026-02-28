@@ -1,43 +1,59 @@
 import { Decimal } from '@prisma/client/runtime/client';
-import { OrderStatus } from '@prisma/client';
+import {
+  Cart,
+  Inventory,
+  Order,
+  OrderProduct,
+  OrderStatus,
+  Product,
+  User,
+} from '@prisma/client';
+import { OrderFilterInput } from '../dto/order-filter.input';
+import { CreateOrderInput } from '../dto/create-order.input';
+import { CreateSingleItemOrderInput } from '../dto/create-single-item-order.input';
+import { CreateGuestOrderInput } from '../dto/create-guest-order.input';
 
-export const fakeUserId = 'uid1';
-export const fakeOrderId = 'oid1';
-export const fakeInventoryId = 'invid1';
-export const fakeAddressId = 'addrid1';
-export const fakePaymentId = 'payid1';
+type OrderProductWithData = Partial<OrderProduct> & {
+  inventory: Partial<Inventory> & { product: Partial<Product> };
+};
 
-export const orderFilterInput = {
+type OrderWithPayment = Partial<Order> & {
+  payment: { paymentMethod: string } | null;
+};
+
+type CartWithProducts = Partial<Cart> & {
+  user: Partial<User>;
+  products: OrderProductWithData[];
+};
+
+export const orderFilterInput: Partial<OrderFilterInput> = {
   offset: 0,
   limit: 10,
 };
 
-export const orderFilterWithStatus = {
-  offset: 0,
-  limit: 10,
+export const orderFilterWithStatus: Partial<OrderFilterInput> = {
+  ...orderFilterInput,
   status: OrderStatus.pending,
 };
 
-export const orderFilterWithDates = {
-  offset: 0,
-  limit: 10,
+export const orderFilterWithDates: Partial<OrderFilterInput> = {
+  ...orderFilterInput,
   fromDate: new Date('2025-01-01'),
   toDate: new Date('2025-12-31'),
 };
 
-export const orderFilterWithTotal = {
-  offset: 0,
-  limit: 10,
+export const orderFilterWithTotal: Partial<OrderFilterInput> = {
+  ...orderFilterInput,
   minTotal: 10,
   maxTotal: 200,
 };
 
-export const fakeOrder = {
-  orderId: fakeOrderId,
-  userId: fakeUserId,
+export const fakeOrder: OrderWithPayment = {
+  orderId: 'oid1',
+  userId: 'uid1',
   guestEmail: null,
   paymentId: null,
-  addressId: fakeAddressId,
+  addressId: 'addrid1',
   status: OrderStatus.pending,
   currency: 'USD',
   subtotal: Decimal(99.99),
@@ -48,42 +64,44 @@ export const fakeOrder = {
   deletedAt: null,
 };
 
-export const fakeOrderWithPayment = {
+export const fakeOrderWithPayment: OrderWithPayment = {
   ...fakeOrder,
   orderId: 'oid2',
-  paymentId: fakePaymentId,
+  paymentId: 'payid1',
   status: OrderStatus.paid,
   payment: { paymentMethod: 'card' },
 };
 
-export const fakeOrderList = [fakeOrder, fakeOrderWithPayment];
+export const fakeOrderList: OrderWithPayment[] = [
+  fakeOrder,
+  fakeOrderWithPayment,
+];
 
-export const fakeOrderPaid = {
+export const fakeOrderPaid: OrderWithPayment = {
   ...fakeOrder,
-  paymentId: fakePaymentId,
+  paymentId: 'payid1',
   status: OrderStatus.paid,
 };
 
-export const createOrderInput = {
+export const createOrderInput: Partial<CreateOrderInput> = {
   currency: 'USD',
 };
 
-export const createOrderInputWithAddress = {
+export const createOrderInputWithAddress: Partial<CreateOrderInput> = {
   currency: 'USD',
-  addressId: fakeAddressId,
+  addressId: 'addrid1',
 };
 
-export const fakeCart = {
+export const fakeCart: CartWithProducts = {
   cartId: 'cartid1',
-  userId: fakeUserId,
-  user: { userId: fakeUserId, addressId: fakeAddressId },
+  userId: 'uid1',
+  user: { userId: 'uid1', addressId: 'addrid1' },
   products: [
     {
-      cartItemId: 'cartitemid1',
-      inventoryId: fakeInventoryId,
+      inventoryId: 'invid1',
       amount: 2,
       inventory: {
-        inventoryId: fakeInventoryId,
+        inventoryId: 'invid1',
         stock: 10,
         price: Decimal(99.99),
         salePrice: Decimal(89.99),
@@ -93,12 +111,12 @@ export const fakeCart = {
   ],
 };
 
-export const fakeCartEmpty = {
+export const fakeCartEmpty: CartWithProducts = {
   ...fakeCart,
   products: [],
 };
 
-export const fakeCartInsufficientStock = {
+export const fakeCartInsufficientStock: CartWithProducts = {
   ...fakeCart,
   products: [
     {
@@ -109,11 +127,11 @@ export const fakeCartInsufficientStock = {
   ],
 };
 
-export const fakeCreatedOrder = {
-  orderId: fakeOrderId,
-  userId: fakeUserId,
+export const fakeCreatedOrder: Partial<Order> = {
+  orderId: 'oid1',
+  userId: 'uid1',
   guestEmail: null,
-  addressId: fakeAddressId,
+  addressId: 'addrid1',
   status: 'pending',
   currency: 'USD',
   subtotal: Decimal(179.98),
@@ -122,13 +140,13 @@ export const fakeCreatedOrder = {
   updatedAt: new Date('2025-06-15'),
 };
 
-export const createSingleItemOrderInput = {
-  inventoryId: fakeInventoryId,
+export const createSingleItemOrderInput: Partial<CreateSingleItemOrderInput> = {
+  inventoryId: 'invid1',
   currency: 'USD',
 };
 
-export const fakeInventory = {
-  inventoryId: fakeInventoryId,
+export const fakeInventory: Partial<Inventory> = {
+  inventoryId: 'invid1',
   isActive: true,
   stock: 5,
   price: Decimal(99.99),
@@ -136,32 +154,32 @@ export const fakeInventory = {
   deletedAt: null,
 };
 
-export const fakeInventoryOutOfStock = {
+export const fakeInventoryOutOfStock: Partial<Inventory> = {
   ...fakeInventory,
   stock: 0,
 };
 
-export const fakeInventoryInactive = {
+export const fakeInventoryInactive: Partial<Inventory> = {
   ...fakeInventory,
   isActive: false,
 };
 
-export const fakeInventoryDeleted = {
+export const fakeInventoryDeleted: Partial<Inventory> = {
   ...fakeInventory,
   deletedAt: new Date('2025-01-01'),
 };
 
-export const fakeUser = {
-  userId: fakeUserId,
+export const fakeUser: Partial<User> = {
+  userId: 'uid1',
   email: 'user@example.com',
-  addressId: fakeAddressId,
+  addressId: 'addrid1',
 };
 
-export const fakeCreatedSingleItemOrder = {
-  orderId: fakeOrderId,
-  userId: fakeUserId,
+export const fakeCreatedSingleItemOrder: Partial<Order> = {
+  orderId: 'oid1',
+  userId: 'uid1',
   guestEmail: null,
-  addressId: fakeAddressId,
+  addressId: 'addrid1',
   status: 'pending',
   currency: 'USD',
   subtotal: Decimal(89.99),
@@ -170,18 +188,18 @@ export const fakeCreatedSingleItemOrder = {
   updatedAt: new Date('2025-06-15'),
 };
 
-export const createGuestOrderInput = {
-  inventoryId: fakeInventoryId,
+export const createGuestOrderInput: Partial<CreateGuestOrderInput> = {
+  inventoryId: 'invid1',
   email: 'guest@example.com',
   currency: 'USD',
-  addressId: fakeAddressId,
+  addressId: 'addrid1',
 };
 
-export const fakeCreatedGuestOrder = {
-  orderId: fakeOrderId,
+export const fakeCreatedGuestOrder: Partial<Order> = {
+  orderId: 'oid1',
   userId: null,
   guestEmail: 'guest@example.com',
-  addressId: fakeAddressId,
+  addressId: 'addrid1',
   status: 'pending',
   currency: 'USD',
   subtotal: Decimal(89.99),
@@ -190,9 +208,9 @@ export const fakeCreatedGuestOrder = {
   updatedAt: new Date('2025-06-15'),
 };
 
-export const fakeOrderForProcessing = {
-  orderId: fakeOrderId,
-  userId: fakeUserId,
+export const fakeOrderForProcessing: Partial<Order> = {
+  orderId: 'oid1',
+  userId: 'uid1',
   status: OrderStatus.paid,
   subtotal: Decimal(99.99),
   total: Decimal(99.99),
@@ -200,12 +218,12 @@ export const fakeOrderForProcessing = {
   updatedAt: new Date('2025-06-15'),
 };
 
-export const fakeOrderNotPaid = {
+export const fakeOrderNotPaid: Partial<Order> = {
   ...fakeOrderForProcessing,
   status: OrderStatus.pending,
 };
 
-export const fakeProcessedOrder = {
+export const fakeProcessedOrder: Partial<Order> = {
   ...fakeOrderForProcessing,
   status: OrderStatus.processing,
 };

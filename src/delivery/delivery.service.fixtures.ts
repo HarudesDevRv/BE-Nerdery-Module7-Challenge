@@ -1,5 +1,9 @@
-import { Delivery, DeliveryStatus, Role, User } from '@prisma/client';
+import { Delivery, DeliveryStatus, Order, Role, User } from '@prisma/client';
 import { UpdateDeliveryInput } from './dto/update-delivery.input';
+
+type DeliveryWithOrder = Partial<Delivery> & {
+  order: Partial<Order>;
+};
 
 export const fakeDelivery: Partial<Delivery> = {
   deliveryId: 'did1',
@@ -9,12 +13,12 @@ export const fakeDelivery: Partial<Delivery> = {
   estimatedAt: null,
 };
 
-export const fakeDeliveryWithOrder = {
+export const fakeDeliveryWithOrder: DeliveryWithOrder = {
   ...fakeDelivery,
   order: { orderId: 'oid1', status: 'processing' },
 };
 
-export const fakeDeliveryWithNonProcessingOrder = {
+export const fakeDeliveryWithNonProcessingOrder: DeliveryWithOrder = {
   ...fakeDelivery,
   order: { orderId: 'oid1', status: 'shipped' },
 };
