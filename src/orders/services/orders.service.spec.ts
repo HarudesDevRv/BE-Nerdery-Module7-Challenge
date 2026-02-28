@@ -37,12 +37,12 @@ describe('OrdersService', () => {
     service = module.get<OrdersService>(OrdersService);
   });
 
-  it('Should be defined', () => {
+  it('should be defined', () => {
     expect(service).toBeDefined();
   });
 
   describe('findAllByUser', () => {
-    it('Should retrieve the paginated orders of a user', async () => {
+    it('should retrieve the paginated orders of a user', async () => {
       mockPrisma.order.findMany.mockResolvedValue([fixtures.fakeOrder]);
 
       const orders = await service.findAllByUser(
@@ -64,7 +64,7 @@ describe('OrdersService', () => {
       ]);
     });
 
-    it('Should retrieve orders of a user filtered by status', async () => {
+    it('should retrieve orders of a user filtered by status', async () => {
       mockPrisma.order.findMany.mockResolvedValue([fixtures.fakeOrder]);
 
       const orders = await service.findAllByUser(
@@ -75,7 +75,7 @@ describe('OrdersService', () => {
       expect(orders).toHaveLength(1);
     });
 
-    it('Should retrieve orders of a user filtered by date range', async () => {
+    it('should retrieve orders of a user filtered by date range', async () => {
       mockPrisma.order.findMany.mockResolvedValue([fixtures.fakeOrder]);
 
       const orders = await service.findAllByUser(
@@ -86,7 +86,7 @@ describe('OrdersService', () => {
       expect(orders).toHaveLength(1);
     });
 
-    it('Should retrieve orders of a user filtered by total range', async () => {
+    it('should retrieve orders of a user filtered by total range', async () => {
       mockPrisma.order.findMany.mockResolvedValue([fixtures.fakeOrder]);
 
       const orders = await service.findAllByUser(
@@ -99,7 +99,7 @@ describe('OrdersService', () => {
   });
 
   describe('findAll', () => {
-    it('Should retrieve all orders', async () => {
+    it('should retrieve all orders', async () => {
       mockPrisma.order.findMany.mockResolvedValue([
         fixtures.fakeOrderWithPayment,
       ]);
@@ -120,7 +120,7 @@ describe('OrdersService', () => {
       ]);
     });
 
-    it('Should retrieve all orders filtered by status', async () => {
+    it('should retrieve all orders filtered by status', async () => {
       mockPrisma.order.findMany.mockResolvedValue([fixtures.fakeOrder]);
 
       const orders = await service.findAll(fixtures.orderFilterWithStatus);
@@ -128,7 +128,7 @@ describe('OrdersService', () => {
       expect(orders).toHaveLength(1);
     });
 
-    it('Should retrieve all orders filtered by date range', async () => {
+    it('should retrieve all orders filtered by date range', async () => {
       mockPrisma.order.findMany.mockResolvedValue([fixtures.fakeOrder]);
 
       const orders = await service.findAll(fixtures.orderFilterWithDates);
@@ -136,7 +136,7 @@ describe('OrdersService', () => {
       expect(orders).toHaveLength(1);
     });
 
-    it('Should retrieve all orders filtered by total range', async () => {
+    it('should retrieve all orders filtered by total range', async () => {
       mockPrisma.order.findMany.mockResolvedValue([fixtures.fakeOrder]);
 
       const orders = await service.findAll(fixtures.orderFilterWithTotal);
@@ -146,7 +146,7 @@ describe('OrdersService', () => {
   });
 
   describe('findOne', () => {
-    it('Should retrieve a single order', async () => {
+    it('should retrieve a single order', async () => {
       mockPrisma.order.findUnique.mockResolvedValue(fixtures.fakeOrder);
 
       const order = await service.findOne('oid1', 'uid1');
@@ -163,7 +163,7 @@ describe('OrdersService', () => {
       });
     });
 
-    it('Should throw NotFoundException for unknown order on findOne', async () => {
+    it('should throw NotFoundException for unknown order on findOne', async () => {
       mockPrisma.order.findUnique.mockResolvedValue(null);
 
       await expect(service.findOne('oid1', 'uid1')).rejects.toThrow(
@@ -171,7 +171,7 @@ describe('OrdersService', () => {
       );
     });
 
-    it('Should throw ForbiddenException when accessing another user order', async () => {
+    it('should throw ForbiddenException when accessing another user order', async () => {
       mockPrisma.order.findUnique.mockResolvedValue(fixtures.fakeOrder);
 
       await expect(service.findOne('oid1', 'uid2')).rejects.toThrow(
@@ -181,7 +181,7 @@ describe('OrdersService', () => {
   });
 
   describe('create', () => {
-    it('Should create an order from cart', async () => {
+    it('should create an order from cart', async () => {
       mockPrisma.cart.findUnique.mockResolvedValue(
         fixtures.fakeCart as unknown as Cart,
       );
@@ -201,7 +201,7 @@ describe('OrdersService', () => {
       expect(mockCartService.clearCart).toHaveBeenCalledWith('uid1');
     });
 
-    it('Should throw InternalServerErrorException when cart is not found', async () => {
+    it('should throw InternalServerErrorException when cart is not found', async () => {
       mockPrisma.cart.findUnique.mockResolvedValue(null);
 
       await expect(
@@ -209,7 +209,7 @@ describe('OrdersService', () => {
       ).rejects.toThrow(InternalServerErrorException);
     });
 
-    it('Should throw BadRequestException when cart is empty', async () => {
+    it('should throw BadRequestException when cart is empty', async () => {
       mockPrisma.cart.findUnique.mockResolvedValue(
         fixtures.fakeCartEmpty as unknown as Cart,
       );
@@ -219,7 +219,7 @@ describe('OrdersService', () => {
       ).rejects.toThrow(BadRequestException);
     });
 
-    it('Should throw BadRequestException when cart has insufficient stock', async () => {
+    it('should throw BadRequestException when cart has insufficient stock', async () => {
       mockPrisma.cart.findUnique.mockResolvedValue(
         fixtures.fakeCartInsufficientStock as unknown as Cart,
       );
@@ -231,7 +231,7 @@ describe('OrdersService', () => {
   });
 
   describe('createSingleItemOrder', () => {
-    it('Should create a single item order', async () => {
+    it('should create a single item order', async () => {
       mockPrisma.inventory.findUnique.mockResolvedValue(
         fixtures.fakeInventory as Inventory,
       );
@@ -256,7 +256,7 @@ describe('OrdersService', () => {
       });
     });
 
-    it('Should throw NotFoundException when inventory is not found on single item order', async () => {
+    it('should throw NotFoundException when inventory is not found on single item order', async () => {
       mockPrisma.inventory.findUnique.mockResolvedValue(null);
       mockPrisma.user.findUniqueOrThrow.mockResolvedValue(
         fixtures.fakeUser as User,
@@ -270,7 +270,7 @@ describe('OrdersService', () => {
       ).rejects.toThrow(NotFoundException);
     });
 
-    it('Should throw NotFoundException when inventory is inactive on single item order', async () => {
+    it('should throw NotFoundException when inventory is inactive on single item order', async () => {
       mockPrisma.inventory.findUnique.mockResolvedValue(
         fixtures.fakeInventoryInactive as Inventory,
       );
@@ -286,7 +286,7 @@ describe('OrdersService', () => {
       ).rejects.toThrow(NotFoundException);
     });
 
-    it('Should throw NotFoundException when inventory is deleted on single item order', async () => {
+    it('should throw NotFoundException when inventory is deleted on single item order', async () => {
       mockPrisma.inventory.findUnique.mockResolvedValue(
         fixtures.fakeInventoryDeleted as Inventory,
       );
@@ -302,7 +302,7 @@ describe('OrdersService', () => {
       ).rejects.toThrow(NotFoundException);
     });
 
-    it('Should throw BadRequestException when inventory is out of stock on single item order', async () => {
+    it('should throw BadRequestException when inventory is out of stock on single item order', async () => {
       mockPrisma.inventory.findUnique.mockResolvedValue(
         fixtures.fakeInventoryOutOfStock as Inventory,
       );
@@ -320,7 +320,7 @@ describe('OrdersService', () => {
   });
 
   describe('createGuestOrder', () => {
-    it('Should create a guest order', async () => {
+    it('should create a guest order', async () => {
       mockPrisma.deletedAtFilter.inventory.findUnique.mockResolvedValue(
         fixtures.fakeInventory as Inventory,
       );
@@ -342,7 +342,7 @@ describe('OrdersService', () => {
       });
     });
 
-    it('Should throw NotFoundException when inventory is not found on guest order', async () => {
+    it('should throw NotFoundException when inventory is not found on guest order', async () => {
       mockPrisma.deletedAtFilter.inventory.findUnique.mockResolvedValue(null);
 
       await expect(
@@ -350,7 +350,7 @@ describe('OrdersService', () => {
       ).rejects.toThrow(NotFoundException);
     });
 
-    it('Should throw NotFoundException when inventory is inactive on guest order', async () => {
+    it('should throw NotFoundException when inventory is inactive on guest order', async () => {
       mockPrisma.deletedAtFilter.inventory.findUnique.mockResolvedValue(
         fixtures.fakeInventoryInactive as Inventory,
       );
@@ -360,7 +360,7 @@ describe('OrdersService', () => {
       ).rejects.toThrow(NotFoundException);
     });
 
-    it('Should throw BadRequestException when inventory is out of stock on guest order', async () => {
+    it('should throw BadRequestException when inventory is out of stock on guest order', async () => {
       mockPrisma.deletedAtFilter.inventory.findUnique.mockResolvedValue(
         fixtures.fakeInventoryOutOfStock as Inventory,
       );
@@ -372,7 +372,7 @@ describe('OrdersService', () => {
   });
 
   describe('processOrder', () => {
-    it('Should process a paid order', async () => {
+    it('should process a paid order', async () => {
       mockPrisma.order.findUnique.mockResolvedValue(
         fixtures.fakeOrderForProcessing as Order,
       );
@@ -385,7 +385,7 @@ describe('OrdersService', () => {
       expect(order).toEqual(fixtures.fakeProcessedOrder);
     });
 
-    it('Should throw NotFoundException for unknown order on processOrder', async () => {
+    it('should throw NotFoundException for unknown order on processOrder', async () => {
       mockPrisma.order.findUnique.mockResolvedValue(null);
 
       await expect(service.processOrder('oid1')).rejects.toThrow(
@@ -393,7 +393,7 @@ describe('OrdersService', () => {
       );
     });
 
-    it('Should throw BadRequestException when order is not paid on processOrder', async () => {
+    it('should throw BadRequestException when order is not paid on processOrder', async () => {
       mockPrisma.order.findUnique.mockResolvedValue(
         fixtures.fakeOrderNotPaid as Order,
       );

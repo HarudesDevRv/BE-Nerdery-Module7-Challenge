@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/unbound-method */
 import { Test, TestingModule } from '@nestjs/testing';
 import { ProductsService } from './products.service';
 import { ProductMapperService } from './product-mapper.service';
@@ -33,12 +34,12 @@ describe('ProductsService', () => {
     service = module.get<ProductsService>(ProductsService);
   });
 
-  it('Should be defined', () => {
+  it('should be defined', () => {
     expect(service).toBeDefined();
   });
 
   describe('getCategories', () => {
-    it('Should retrieve the category list', async () => {
+    it('should retrieve the category list', async () => {
       mockPrisma.category.findMany.mockResolvedValue([
         { name: 'Gadgets' },
       ] as Category[]);
@@ -54,7 +55,7 @@ describe('ProductsService', () => {
   });
 
   describe('findAll', () => {
-    it('Should return paginated products', async () => {
+    it('should return paginated products', async () => {
       mockPrisma.$transaction.mockResolvedValue([[fixtures.fakeProduct], 1]);
 
       const result = await service.findAll({});
@@ -82,7 +83,7 @@ describe('ProductsService', () => {
       });
     });
 
-    it('Should format each product', async () => {
+    it('should format each product', async () => {
       mockPrisma.$transaction.mockResolvedValue([[fixtures.fakeProduct], 1]);
 
       const result = await service.findAll({});
@@ -110,17 +111,71 @@ describe('ProductsService', () => {
       });
     });
 
-    it('Should throw NotFoundException for unknown category', async () => {
+    it('should throw NotFoundException for unknown category', async () => {
       mockPrisma.category.findUnique.mockResolvedValue(null);
 
       await expect(service.findAll({ category: 'Unknown' })).rejects.toThrow(
         NotFoundException,
       );
     });
+
+    it('should filter products by minPrice', async () => {
+      mockPrisma.$transaction.mockResolvedValue([[fixtures.fakeProduct], 1]);
+
+      await service.findAll({ minPrice: 5 });
+
+      expect(mockPrisma.deletedAtFilter.product.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: {
+            categoryId: undefined,
+            inventories: { some: { salePrice: { gte: 5, lte: undefined } } },
+          },
+        }),
+      );
+    });
+
+    it('should filter products by maxPrice', async () => {
+      mockPrisma.$transaction.mockResolvedValue([[fixtures.fakeProduct], 1]);
+
+      await service.findAll({ maxPrice: 15 });
+
+      expect(mockPrisma.deletedAtFilter.product.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: {
+            categoryId: undefined,
+            inventories: { some: { salePrice: { gte: undefined, lte: 15 } } },
+          },
+        }),
+      );
+    });
+
+    it('should filter products by minPrice and maxPrice range', async () => {
+      mockPrisma.$transaction.mockResolvedValue([[fixtures.fakeProduct], 1]);
+
+      await service.findAll({ minPrice: 5, maxPrice: 15 });
+
+      expect(mockPrisma.deletedAtFilter.product.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: {
+            categoryId: undefined,
+            inventories: { some: { salePrice: { gte: 5, lte: 15 } } },
+          },
+        }),
+      );
+    });
+
+    it('should exclude products whose inventories do not match the price filter', async () => {
+      const productOutsideRange = { ...fixtures.fakeProduct, inventories: [] };
+      mockPrisma.$transaction.mockResolvedValue([[productOutsideRange], 0]);
+
+      const result = await service.findAll({ minPrice: 100 });
+
+      expect(result.items).toEqual([]);
+    });
   });
 
   describe('findOne', () => {
-    it('Should return a formatted product', async () => {
+    it('should return a formatted product', async () => {
       mockPrisma.deletedAtFilter.product.findUnique.mockResolvedValue(
         fixtures.fakeProduct as unknown as Product,
       );
@@ -148,42 +203,44 @@ describe('ProductsService', () => {
       expect(formatDetailedProductSpy).toHaveBeenCalled();
     });
 
-    it('Should throw NotFoundException for unknown product', async () => {
+    it('should throw NotFoundException for unknown product', async () => {
       mockPrisma.deletedAtFilter.product.findUnique.mockResolvedValue(null);
 
       await expect(service.findOne('pid1')).rejects.toThrow(NotFoundException);
     });
   });
 
-  it('Should return paginated manager products', async () => {
-    mockPrisma.$transaction.mockResolvedValue([
-      [fixtures.fakeManagerProduct],
-      1,
-    ]);
+  describe('getByManagerId', () => {
+    it('should return paginated manager products', async () => {
+      mockPrisma.$transaction.mockResolvedValue([
+        [fixtures.fakeManagerProduct],
+        1,
+      ]);
 
-    const result = await service.getByManagerId('mid1', {});
+      const result = await service.getByManagerId('mid1', {});
 
-    expect(result.items).toEqual([
-      {
-        managerId: 'mid1',
-        productId: 'pid1',
-        name: 'Widget',
-        description: 'A widget',
-        categoryId: 'cid1',
-        brandId: 'bid1',
-      },
-    ]);
+      expect(result.items).toEqual([
+        {
+          managerId: 'mid1',
+          productId: 'pid1',
+          name: 'Widget',
+          description: 'A widget',
+          categoryId: 'cid1',
+          brandId: 'bid1',
+        },
+      ]);
 
-    expect(result.pagination).toEqual({
-      totalItems: 1,
-      totalPages: 1,
-      currentPage: 1,
-      hasNextPage: false,
+      expect(result.pagination).toEqual({
+        totalItems: 1,
+        totalPages: 1,
+        currentPage: 1,
+        hasNextPage: false,
+      });
     });
   });
 
   describe('create', () => {
-    it('Should create a product', async () => {
+    it('should create a product', async () => {
       mockPrisma.category.findUnique.mockResolvedValue({
         categoryId: 'cid2',
       } as Category);
@@ -204,13 +261,13 @@ describe('ProductsService', () => {
         description: 'A widget 2',
         brandId: 'bid2',
         categoryId: 'cid2',
-        isACtive: true,
+        isActive: true,
         images: [],
         inventories: [],
       });
     });
 
-    it('Should throw NotFoundException for unknown category on product create', async () => {
+    it('should throw NotFoundException for unknown category on product create', async () => {
       mockPrisma.category.findUnique.mockResolvedValue(null);
       mockPrisma.brand.findUnique.mockResolvedValue({
         brandId: 'bid2',
@@ -221,7 +278,7 @@ describe('ProductsService', () => {
       ).rejects.toThrow(NotFoundException);
     });
 
-    it('Should throw NotFoundException for unknown brand on product create', async () => {
+    it('should throw NotFoundException for unknown brand on product create', async () => {
       mockPrisma.brand.findUnique.mockResolvedValue(null);
       mockPrisma.category.findUnique.mockResolvedValue({
         categoryId: 'cid2',
@@ -234,7 +291,7 @@ describe('ProductsService', () => {
   });
 
   describe('update', () => {
-    it('Should update a product', async () => {
+    it('should update a product', async () => {
       mockPrisma.category.findUnique.mockResolvedValue({
         categoryId: 'cid2',
       } as Category);
@@ -263,11 +320,11 @@ describe('ProductsService', () => {
         description: 'A widget 2',
         brandId: 'bid2',
         categoryId: 'cid2',
-        isACtive: false,
+        isActive: false,
       });
     });
 
-    it('Should throw NotFoundException for unknown product on product update', async () => {
+    it('should throw NotFoundException for unknown product on product update', async () => {
       mockPrisma.deletedAtFilter.product.findUnique.mockResolvedValue(null);
 
       await expect(service.update('pid2', {}, 'mid1')).rejects.toThrow(
@@ -275,7 +332,7 @@ describe('ProductsService', () => {
       );
     });
 
-    it('Should throw NotFoundException for unknown category on product update', async () => {
+    it('should throw NotFoundException for unknown category on product update', async () => {
       mockPrisma.category.findUnique.mockResolvedValue(null);
 
       await expect(
@@ -283,7 +340,7 @@ describe('ProductsService', () => {
       ).rejects.toThrow(NotFoundException);
     });
 
-    it('Should throw NotFoundException for unknown brand on product update', async () => {
+    it('should throw NotFoundException for unknown brand on product update', async () => {
       mockPrisma.brand.findUnique.mockResolvedValue(null);
 
       await expect(
@@ -291,7 +348,7 @@ describe('ProductsService', () => {
       ).rejects.toThrow(NotFoundException);
     });
 
-    it('Should throw ForbiddenException for unauthorized operation on product update', async () => {
+    it('should throw ForbiddenException for unauthorized operation on product update', async () => {
       mockPrisma.deletedAtFilter.product.findUnique.mockResolvedValue(
         fixtures.fakeManagerProduct as unknown as Product,
       );
@@ -303,7 +360,7 @@ describe('ProductsService', () => {
   });
 
   describe('delete', () => {
-    it('Should soft delete a product', async () => {
+    it('should soft delete a product', async () => {
       mockPrisma.deletedAtFilter.product.findUnique.mockResolvedValue({
         ...fixtures.fakeManagerProduct,
         deletedAt: new Date(),
@@ -313,7 +370,7 @@ describe('ProductsService', () => {
       expect(deletedProduct).toEqual(true);
     });
 
-    it('Should throw NotFoundException for unknown product on product delete', async () => {
+    it('should throw NotFoundException for unknown product on product delete', async () => {
       mockPrisma.deletedAtFilter.product.findUnique.mockResolvedValue(null);
 
       await expect(service.delete('pid1', 'mid1')).rejects.toThrow(
@@ -321,7 +378,7 @@ describe('ProductsService', () => {
       );
     });
 
-    it('Should throw ForbiddenException for unauthorized operation on product delete', async () => {
+    it('should throw ForbiddenException for unauthorized operation on product delete', async () => {
       mockPrisma.deletedAtFilter.product.findUnique.mockResolvedValue(
         fixtures.fakeManagerProduct as unknown as Product,
       );
@@ -333,7 +390,7 @@ describe('ProductsService', () => {
   });
 
   describe('toggleLike', () => {
-    it('Should toggle the like status of a product for a user to true', async () => {
+    it('should toggle the like status of a product for a user to true', async () => {
       mockPrisma.deletedAtFilter.product.findUnique.mockResolvedValue(
         fixtures.fakeManagerProduct as unknown as Product,
       );
@@ -347,7 +404,7 @@ describe('ProductsService', () => {
       expect(likeStatus).toEqual(true);
     });
 
-    it('Should toggle the like status of a product for a user to false', async () => {
+    it('should toggle the like status of a product for a user to false', async () => {
       mockPrisma.deletedAtFilter.product.findUnique.mockResolvedValue(
         fixtures.fakeManagerProduct as unknown as Product,
       );
@@ -361,7 +418,7 @@ describe('ProductsService', () => {
       expect(likeStatus).toEqual(false);
     });
 
-    it('Should throw NotFoundException for unknown product on product delete', async () => {
+    it('should throw NotFoundException for unknown product on toggleLike', async () => {
       mockPrisma.deletedAtFilter.product.findUnique.mockResolvedValue(null);
 
       await expect(service.toggleLike('pid1', 'uid1', false)).rejects.toThrow(
@@ -369,7 +426,7 @@ describe('ProductsService', () => {
       );
     });
 
-    it('Should throw NotFoundException for unknown user on product delete', async () => {
+    it('should throw NotFoundException for unknown user on toggleLike', async () => {
       mockPrisma.deletedAtFilter.product.findUnique.mockResolvedValue(
         fixtures.fakeManagerProduct as unknown as Product,
       );
@@ -382,7 +439,7 @@ describe('ProductsService', () => {
   });
 
   describe('createImage', () => {
-    it('Should create an image', async () => {
+    it('should create an image', async () => {
       mockPrisma.deletedAtFilter.product.findUnique.mockResolvedValue(
         fixtures.fakeManagerProduct as unknown as Product,
       );
@@ -402,7 +459,7 @@ describe('ProductsService', () => {
       });
     });
 
-    it('Should throw NotFoundException for unknown product on image create', async () => {
+    it('should throw NotFoundException for unknown product on image create', async () => {
       mockPrisma.deletedAtFilter.product.findUnique.mockResolvedValue(null);
 
       await expect(service.createImage('pid1', 'mid1')).rejects.toThrow(
@@ -410,7 +467,7 @@ describe('ProductsService', () => {
       );
     });
 
-    it('Should throw ForbiddenException for unauthorized operation on image create', async () => {
+    it('should throw ForbiddenException for unauthorized operation on image create', async () => {
       mockPrisma.deletedAtFilter.product.findUnique.mockResolvedValue(
         fixtures.fakeManagerProduct as unknown as Product,
       );
@@ -422,7 +479,7 @@ describe('ProductsService', () => {
   });
 
   describe('updateImageUrl', () => {
-    it('Should update an image URL', async () => {
+    it('should update an image URL', async () => {
       const updatedImage = {
         ...fixtures.fakeImage,
         url: 'http://example.com/new-image.jpg',
@@ -446,7 +503,7 @@ describe('ProductsService', () => {
       });
     });
 
-    it('Should throw NotFoundException for unknown image on image update', async () => {
+    it('should throw NotFoundException for unknown image on image update', async () => {
       mockPrisma.deletedAtFilter.image.findUnique.mockResolvedValue(null);
 
       await expect(
@@ -458,7 +515,7 @@ describe('ProductsService', () => {
       ).rejects.toThrow(NotFoundException);
     });
 
-    it('Should throw ForbiddenException for unauthorized operation on image update', async () => {
+    it('should throw ForbiddenException for unauthorized operation on image update', async () => {
       mockPrisma.deletedAtFilter.image.findUnique.mockResolvedValue(
         fixtures.fakeImageWithProduct as unknown as Image,
       );
@@ -474,7 +531,7 @@ describe('ProductsService', () => {
   });
 
   describe('deleteImage', () => {
-    it('Should soft delete an image', async () => {
+    it('should soft delete an image', async () => {
       const deletedAt = new Date();
       const deletedImage = { ...fixtures.fakeImage, deletedAt };
       mockPrisma.deletedAtFilter.image.findUnique.mockResolvedValue(
@@ -492,7 +549,7 @@ describe('ProductsService', () => {
       });
     });
 
-    it('Should throw NotFoundException for unknown image on image delete', async () => {
+    it('should throw NotFoundException for unknown image on image delete', async () => {
       mockPrisma.deletedAtFilter.image.findUnique.mockResolvedValue(null);
 
       await expect(service.deleteImage('iid1', 'mid1')).rejects.toThrow(
@@ -500,7 +557,7 @@ describe('ProductsService', () => {
       );
     });
 
-    it('Should throw ForbiddenException for unauthorized operation on image delete', async () => {
+    it('should throw ForbiddenException for unauthorized operation on image delete', async () => {
       mockPrisma.deletedAtFilter.image.findUnique.mockResolvedValue(
         fixtures.fakeImageWithProduct as unknown as Image,
       );

@@ -1,4 +1,3 @@
-// prisma.service.spec.ts
 import { PrismaService } from './prisma.service';
 import { ConfigService } from '@nestjs/config';
 
@@ -24,14 +23,17 @@ describe('PrismaService', () => {
     disconnectSpy = jest.spyOn(service, '$disconnect').mockResolvedValue();
   });
 
-  it('connects on module init', async () => {
+  it('should be defined', () => {
+    expect(service).toBeDefined();
+  });
+
+  it('should connect on module init', async () => {
     await service.onModuleInit();
     expect(connectSpy).toHaveBeenCalled();
   });
 
-  it('disconnects on module destroy', async () => {
+  it('should disconnect on module destroy', async () => {
     await service.onModuleDestroy();
     expect(disconnectSpy).toHaveBeenCalled();
   });
-  //TODO: test deletedAt extension
 });

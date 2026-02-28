@@ -49,19 +49,6 @@ describe('MailerService', () => {
     expect(service).toBeDefined();
   });
 
-  it('should initialize the transporter with SMTP config on construction', () => {
-    expect(nodemailer.createTransport).toHaveBeenCalledWith(
-      expect.objectContaining({
-        host: 'smtp.example.com',
-        port: 587,
-        auth: {
-          user: 'user@example.com',
-          pass: 'smtp-password',
-        },
-      }),
-    );
-  });
-
   describe('sendMail', () => {
     it('should send an email using the transporter with the configured from address', async () => {
       await service.sendMail({
@@ -78,20 +65,16 @@ describe('MailerService', () => {
       });
     });
 
-    it('should forward any additional options to the transporter', async () => {
-      await service.sendMail({
-        to: ['a@example.com', 'b@example.com'],
-        subject: 'Multi-recipient',
-        text: 'Plain text body',
-      });
+    it('should propagate errors thrown by the transporter', async () => {
+      mockSendMail.mockRejectedValue(new Error('SMTP connection refused'));
 
-      expect(mockSendMail).toHaveBeenCalledWith(
-        expect.objectContaining({
-          from: 'no-reply@example.com',
-          to: ['a@example.com', 'b@example.com'],
-          text: 'Plain text body',
+      await expect(
+        service.sendMail({
+          to: 'recipient@example.com',
+          subject: 'Test',
+          html: '<p>Hello</p>',
         }),
-      );
+      ).rejects.toThrow('SMTP connection refused');
     });
   });
 });

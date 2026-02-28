@@ -58,6 +58,14 @@ describe('DeliveryService', () => {
 
       expect(result).toEqual([fixtures.fakeDelivery]);
     });
+
+    it('should return an empty array when no deliveries are assigned', async () => {
+      mockPrisma.delivery.findMany.mockResolvedValue([]);
+
+      const result = await service.findAssigned('dpid1');
+
+      expect(result).toEqual([]);
+    });
   });
 
   describe('updateStatus', () => {
@@ -74,6 +82,22 @@ describe('DeliveryService', () => {
       );
 
       expect(result).toEqual(updatedDelivery);
+    });
+
+    it('should update only the estimatedAt when only estimatedDelivery is provided', async () => {
+      const estimatedAt = new Date('2025-12-31');
+      const updatedDelivery = { ...fixtures.fakeDelivery, estimatedAt };
+      mockPrisma.delivery.update.mockResolvedValue(updatedDelivery as Delivery);
+
+      const result = await service.updateStatus('did1', {
+        estimatedDelivery: estimatedAt,
+      });
+
+      expect(result.estimatedAt).toEqual(estimatedAt);
+      expect(mockPrisma.delivery.update).toHaveBeenCalledWith({
+        where: { deliveryId: 'did1' },
+        data: { status: undefined, estimatedAt },
+      });
     });
   });
 

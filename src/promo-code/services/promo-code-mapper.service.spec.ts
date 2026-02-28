@@ -34,55 +34,65 @@ describe('PromoCodeMapperService', () => {
     expect(service).toBeDefined();
   });
 
-  it('should format a promo code converting Decimal discountValue to a number', () => {
-    const record = makeFakeDiscountCode();
+  describe('formatPromoCode', () => {
+    it('should format a promo code converting Decimal discountValue to a number', () => {
+      const record = makeFakeDiscountCode();
 
-    const result = service.formatPromoCode(record);
+      const result = service.formatPromoCode(record);
 
-    expect(result.discountCodeId).toBe('dc1');
-    expect(result.code).toBe('SAVE10');
-    expect(result.discountValue).toBe(10.0);
-    expect(result.discountType).toBe(DiscountType.percentage);
-    expect(result.isActive).toBe(true);
-  });
-
-  it('should map null optional fields to undefined', () => {
-    const record = makeFakeDiscountCode({
-      minAmount: null,
-      stripeCouponId: null,
-      stripePromotionCodeId: null,
+      expect(result.discountCodeId).toBe('dc1');
+      expect(result.code).toBe('SAVE10');
+      expect(result.discountValue).toBe(10.0);
+      expect(result.discountType).toBe(DiscountType.percentage);
+      expect(result.isActive).toBe(true);
     });
 
-    const result = service.formatPromoCode(record);
+    it('should map null optional fields to undefined', () => {
+      const record = makeFakeDiscountCode({
+        minAmount: null,
+        stripeCouponId: null,
+        stripePromotionCodeId: null,
+      });
 
-    expect(result.minAmount).toBeUndefined();
-    expect(result.stripeCouponId).toBeUndefined();
-    expect(result.stripePromotionCodeId).toBeUndefined();
-  });
+      const result = service.formatPromoCode(record);
 
-  it('should preserve non-null optional fields', () => {
-    const record = makeFakeDiscountCode({
-      minAmount: 50,
-      stripeCouponId: 'coup_123',
-      stripePromotionCodeId: 'promo_456',
+      expect(result.minAmount).toBeUndefined();
+      expect(result.stripeCouponId).toBeUndefined();
+      expect(result.stripePromotionCodeId).toBeUndefined();
     });
 
-    const result = service.formatPromoCode(record);
+    it('should preserve non-null optional fields', () => {
+      const record = makeFakeDiscountCode({
+        minAmount: 50,
+        stripeCouponId: 'coup_123',
+        stripePromotionCodeId: 'promo_456',
+      });
 
-    expect(result.minAmount).toBe(50);
-    expect(result.stripeCouponId).toBe('coup_123');
-    expect(result.stripePromotionCodeId).toBe('promo_456');
-  });
+      const result = service.formatPromoCode(record);
 
-  it('should handle a fixed discount type', () => {
-    const record = makeFakeDiscountCode({
-      discountType: DiscountType.fixed,
-      discountValue: Decimal(15.5),
+      expect(result.minAmount).toBe(50);
+      expect(result.stripeCouponId).toBe('coup_123');
+      expect(result.stripePromotionCodeId).toBe('promo_456');
     });
 
-    const result = service.formatPromoCode(record);
+    it('should handle a fixed discount type', () => {
+      const record = makeFakeDiscountCode({
+        discountType: DiscountType.fixed,
+        discountValue: Decimal(15.5),
+      });
 
-    expect(result.discountType).toBe(DiscountType.fixed);
-    expect(result.discountValue).toBe(15.5);
+      const result = service.formatPromoCode(record);
+
+      expect(result.discountType).toBe(DiscountType.fixed);
+      expect(result.discountValue).toBe(15.5);
+    });
+
+    it('should convert Decimal discountValue to a plain number', () => {
+      const record = makeFakeDiscountCode({ discountValue: Decimal(99.99) });
+
+      const result = service.formatPromoCode(record);
+
+      expect(typeof result.discountValue).toBe('number');
+    });
   });
 });
