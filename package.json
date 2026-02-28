@@ -100,7 +100,8 @@
     },
     "collectCoverage": true,
     "collectCoverageFrom": [
-      "**/*.service.(t|j)s"
+      "**/*.service.(t|j)s",
+      "!**/prisma.service.(t|j)s"
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node",
