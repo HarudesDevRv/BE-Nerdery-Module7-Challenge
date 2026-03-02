@@ -2,8 +2,8 @@ import { Module } from '@nestjs/common';
 import { CartModule } from '../cart/cart.module';
 import { GuestOrdersResolver } from './resolvers/guest-orders.resolver';
 import { OrdersResolver } from './resolvers/orders.resolver';
-import { OrdersService } from './orders.service';
-import { OrderUtilsService } from './order-utils.service';
+import { OrdersService } from './services/orders.service';
+import { OrderMapperService } from './services/order-mapper.service';
 import { OrderItemsLoader } from './loaders/order-items.loader';
 import { OrderPromoCodesLoader } from './loaders/order-promo-codes.loader';
 
@@ -13,7 +13,7 @@ import { OrderPromoCodesLoader } from './loaders/order-promo-codes.loader';
     GuestOrdersResolver,
     OrdersResolver,
     OrdersService,
-    OrderUtilsService,
+    OrderMapperService,
     OrderItemsLoader,
     OrderPromoCodesLoader,
   ],

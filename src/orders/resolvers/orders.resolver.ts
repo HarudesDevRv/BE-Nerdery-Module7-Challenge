@@ -9,7 +9,7 @@ import {
   Context,
 } from '@nestjs/graphql';
 import { UseGuards } from '@nestjs/common';
-import { OrdersService } from '../orders.service';
+import { OrdersService } from '../services/orders.service';
 import { Order, OrderItem, OrderPromoCode } from '../models/order.model';
 import { CreateOrderInput } from '../dto/create-order.input';
 import { CreateSingleItemOrderInput } from '../dto/create-single-item-order.input';
@@ -19,7 +19,17 @@ import { PoliciesGuard } from '../../common/casl/policies.guard';
 import { CheckPolicies } from '../../common/casl/check-policies.decorator';
 import { Action } from '../../common/casl/casl-ability.factory';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
-import DataLoader from 'dataloader';
+import { RequestedFields } from '../../common/decorators/requested-fields.decorator';
+import { OrderItemsLoader } from '../loaders/order-items.loader';
+import { OrderPromoCodesLoader } from '../loaders/order-promo-codes.loader';
+import DataLoader from 'dataloader'; // used in OrdersContext type
+
+type OrdersContext = {
+  orderItemsLoader: OrderItemsLoader;
+  orderPromoCodesLoader: OrderPromoCodesLoader;
+  _orderItemsLoader?: DataLoader<string, OrderItem[]>;
+  _orderPromoCodesLoader?: DataLoader<string, OrderPromoCode[]>;
+};
 
 @Resolver(() => Order)
 @UseGuards(JwtAuthGuard, PoliciesGuard)
@@ -29,27 +39,38 @@ export class OrdersResolver {
   @Query(() => [Order])
   @CheckPolicies((ability) => ability.can(Action.Manage, 'Order'))
   async allOrders(
+    @RequestedFields() fields: Record<string, unknown>,
     @Args('filter', { nullable: true }) filter?: OrderFilterInput,
   ) {
-    return this.ordersService.findAll(filter ?? {});
+    return this.ordersService.findAll(filter ?? {}, Object.keys(fields));
   }
 
   @Query(() => [Order])
   @CheckPolicies((ability) => ability.can(Action.Read, 'Order'))
   async myOrders(
+    @RequestedFields() fields: Record<string, unknown>,
     @CurrentUser() user: { userId: string },
     @Args('filter', { nullable: true }) filter?: OrderFilterInput,
   ) {
-    return this.ordersService.findAllByUser(user.userId, filter ?? {});
+    return this.ordersService.findAllByUser(
+      user.userId,
+      filter ?? {},
+      Object.keys(fields),
+    );
   }
 
   @Query(() => Order)
   @CheckPolicies((ability) => ability.can(Action.Read, 'Order'))
   async orderDetail(
+    @RequestedFields() fields: Record<string, unknown>,
     @Args({ name: 'orderId', type: () => ID }) orderId: string,
     @CurrentUser() user: { userId: string },
   ) {
-    return this.ordersService.findOne(orderId, user.userId);
+    return this.ordersService.findOne(
+      orderId,
+      user.userId,
+      Object.keys(fields),
+    );
   }
 
   @Mutation(() => Order)
@@ -81,17 +102,24 @@ export class OrdersResolver {
   @ResolveField(() => [OrderItem])
   async items(
     @Parent() order: Order,
-    @Context('orderItemsLoader') loader: DataLoader<string, OrderItem[]>,
+    @RequestedFields() fields: Record<string, unknown>,
+    @Context() ctx: OrdersContext,
   ) {
-    return loader.load(order.orderId);
+    ctx._orderItemsLoader ??= ctx.orderItemsLoader.createLoader(
+      Object.keys(fields),
+    );
+    return ctx._orderItemsLoader.load(order.orderId);
   }
 
   @ResolveField(() => [OrderPromoCode])
   async promoCodes(
     @Parent() order: Order,
-    @Context('orderPromoCodesLoader')
-    loader: DataLoader<string, OrderPromoCode[]>,
+    @RequestedFields() fields: Record<string, unknown>,
+    @Context() ctx: OrdersContext,
   ) {
-    return loader.load(order.orderId);
+    ctx._orderPromoCodesLoader ??= ctx.orderPromoCodesLoader.createLoader(
+      Object.keys(fields),
+    );
+    return ctx._orderPromoCodesLoader.load(order.orderId);
   }
 }

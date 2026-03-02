@@ -5,27 +5,31 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { CartService } from '../cart/services/cart.service';
-import { PrismaService } from '../common/services/prisma/prisma.service';
-import { CreateGuestOrderInput } from './dto/create-guest-order.input';
-import { CreateOrderInput } from './dto/create-order.input';
-import { CreateSingleItemOrderInput } from './dto/create-single-item-order.input';
-import { OrderFilterInput } from './dto/order-filter.input';
-import { OrderUtilsService } from './order-utils.service';
+import { CartService } from '../../cart/services/cart.service';
+import { PrismaService } from '../../common/services/prisma/prisma.service';
+import { CreateGuestOrderInput } from '../dto/create-guest-order.input';
+import { CreateOrderInput } from '../dto/create-order.input';
+import { CreateSingleItemOrderInput } from '../dto/create-single-item-order.input';
+import { OrderFilterInput } from '../dto/order-filter.input';
+import { OrderMapperService } from './order-mapper.service';
+import { buildOrderSelect } from '../utils/order-field-map';
 
 @Injectable()
 export class OrdersService {
   constructor(
     private prisma: PrismaService,
-    private orderUtils: OrderUtilsService,
+    private orderUtils: OrderMapperService,
     private cartService: CartService,
   ) {}
-  //TODO: Check the order creation functions to not work with promo codes
 
-  async findAllByUser(userId: string, filter: OrderFilterInput) {
+  async findAllByUser(
+    userId: string,
+    filter: OrderFilterInput,
+    requestedFields: string[],
+  ) {
     const take = filter.limit || 10;
     const skip = filter.offset ?? 0;
-    const orders = await this.prisma.order.findMany({
+    const orders = (await this.prisma.order.findMany({
       where: {
         userId,
         ...(filter.status && { status: filter.status }),
@@ -48,16 +52,16 @@ export class OrdersService {
       },
       skip,
       take,
-      include: { payment: true },
-    });
+      select: buildOrderSelect(requestedFields),
+    })) as unknown as Parameters<typeof this.orderUtils.formatOrder>[0][];
 
     return orders.map((order) => this.orderUtils.formatOrder(order));
   }
 
-  async findAll(filter: OrderFilterInput) {
+  async findAll(filter: OrderFilterInput, requestedFields: string[]) {
     const take = filter.limit || 10;
     const skip = filter.offset ?? 0;
-    const orders = await this.prisma.order.findMany({
+    const orders = (await this.prisma.order.findMany({
       where: {
         ...(filter.status && { status: filter.status }),
         ...(filter.fromDate || filter.toDate
@@ -79,17 +83,17 @@ export class OrdersService {
       },
       skip,
       take,
-      include: { payment: true },
-    });
+      select: buildOrderSelect(requestedFields),
+    })) as unknown as Parameters<typeof this.orderUtils.formatOrder>[0][];
 
     return orders.map((order) => this.orderUtils.formatOrder(order));
   }
 
-  async findOne(orderId: string, userId: string) {
-    const order = await this.prisma.order.findUnique({
+  async findOne(orderId: string, userId: string, requestedFields: string[]) {
+    const order = (await this.prisma.order.findUnique({
       where: { orderId },
-      include: { payment: true },
-    });
+      select: buildOrderSelect(requestedFields),
+    })) as unknown as Parameters<typeof this.orderUtils.formatOrder>[0] | null;
 
     if (!order) {
       throw new NotFoundException('Order not found');
@@ -129,13 +133,13 @@ export class OrdersService {
       }
     }
 
-    const subtotal = cart.products.reduce(
+    const subtotal: number = cart.products.reduce(
       (accumulator, item) =>
         (accumulator += item.amount * item.inventory.salePrice.toNumber()),
       0,
     );
 
-    const deliveryAddressId = input.addressId ?? cart.user.addressId;
+    const deliveryAddressId: string = input.addressId ?? cart.user.addressId;
 
     const newOrder = await this.prisma.order.create({
       data: {

@@ -3,13 +3,14 @@ import { OrderStatus } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/client';
 
 type RawOrder = {
+  userId: string;
   orderId: string;
-  paymentId: string | null;
-  subtotal: Decimal;
-  total: Decimal;
-  createdAt: Date;
-  updatedAt: Date;
-  status: OrderStatus;
+  paymentId?: string | null;
+  subtotal?: Decimal;
+  total?: Decimal;
+  createdAt?: Date;
+  updatedAt?: Date;
+  status?: OrderStatus;
   payment?: { paymentMethod: string | null } | null;
 };
 
@@ -21,14 +22,15 @@ type CreatedOrder = {
 };
 
 @Injectable()
-export class OrderUtilsService {
+export class OrderMapperService {
   formatOrder(order: RawOrder) {
     return {
+      userId: order.userId,
       orderId: order.orderId,
       paymentId: order.paymentId ?? undefined,
       paymentMethod: order.payment?.paymentMethod ?? undefined,
-      subtotal: order.subtotal.toNumber(),
-      total: order.total.toNumber(),
+      subtotal: order.subtotal?.toNumber(),
+      total: order.total?.toNumber(),
       createdAt: order.createdAt,
       updatedAt: order.updatedAt,
       status: order.status,
