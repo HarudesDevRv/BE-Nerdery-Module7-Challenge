@@ -8,6 +8,7 @@ export class Delivery {
   @Field(() => ID)
   readonly deliveryId: string;
 
+  @Field(() => ID)
   readonly orderId: string;
 
   @Field(() => DeliveryStatus)

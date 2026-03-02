@@ -1,4 +1,4 @@
-import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args, ID } from '@nestjs/graphql';
 import { UseGuards } from '@nestjs/common';
 import { DeliveryService } from './delivery.service';
 import { Delivery } from './models/delivery.model';
@@ -29,7 +29,7 @@ export class DeliveryResolver {
   @Mutation(() => Delivery)
   @CheckPolicies((ability) => ability.can(Action.Update, 'Delivery'))
   updateDeliveryStatus(
-    @Args('deliveryId') deliveryId: string,
+    @Args({ name: 'deliveryId', type: () => ID }) deliveryId: string,
     @Args('input') input: UpdateDeliveryInput,
   ) {
     return this.deliveryService.updateStatus(deliveryId, input);
@@ -38,8 +38,9 @@ export class DeliveryResolver {
   @Mutation(() => Delivery)
   @CheckPolicies((ability) => ability.can(Action.Manage, 'Delivery'))
   assignDelivery(
-    @Args('deliveryId') deliveryId: string,
-    @Args('deliveryPersonId') deliveryPersonId: string,
+    @Args({ name: 'deliveryId', type: () => ID }) deliveryId: string,
+    @Args({ name: 'deliveryPersonId', type: () => ID })
+    deliveryPersonId: string,
   ) {
     return this.deliveryService.assign(deliveryId, deliveryPersonId);
   }
