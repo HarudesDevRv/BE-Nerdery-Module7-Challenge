@@ -1,10 +1,13 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../common/services/prisma/prisma.service';
 import { UpdateDeliveryInput } from './dto/update-delivery.input';
+import { plainToInstance } from 'class-transformer';
+import { Delivery } from './models/delivery.model';
 
 @Injectable()
 export class DeliveryService {
@@ -14,7 +17,9 @@ export class DeliveryService {
     const delivery = await this.prisma.delivery.findUnique({
       where: { orderId },
     });
-    return delivery;
+    return plainToInstance(Delivery, delivery, {
+      excludeExtraneousValues: true,
+    });
   }
 
   async findAssigned(deliveryPersonId: string) {
@@ -22,7 +27,11 @@ export class DeliveryService {
       where: { deliveryPersonId, order: { status: 'shipped' } },
     });
 
-    return deliveries;
+    return deliveries.map((delivery) =>
+      plainToInstance(Delivery, delivery, {
+        excludeExtraneousValues: true,
+      }),
+    );
   }
 
   async updateStatus(deliveryId: string, input: UpdateDeliveryInput) {
@@ -34,16 +43,22 @@ export class DeliveryService {
       },
     });
 
-    return updatedDelivery;
+    return plainToInstance(Delivery, updatedDelivery, {
+      excludeExtraneousValues: true,
+    });
   }
 
-  async completeDelivery(deliveryId: string) {
+  async completeDelivery(deliveryId: string, deliveryPersonId: string) {
     const delivery = await this.prisma.delivery.findUnique({
       where: { deliveryId },
     });
 
     if (!delivery) {
       throw new NotFoundException('Delivery not found');
+    }
+
+    if (delivery.deliveryPersonId !== deliveryPersonId) {
+      throw new ForbiddenException("Can't access this order");
     }
 
     const updatedDelivery = await this.prisma.delivery.update({
@@ -56,7 +71,9 @@ export class DeliveryService {
       data: { status: 'delivered' },
     });
 
-    return updatedDelivery;
+    return plainToInstance(Delivery, updatedDelivery, {
+      excludeExtraneousValues: true,
+    });
   }
 
   async assign(deliveryId: string, deliveryPersonId: string) {
@@ -93,6 +110,8 @@ export class DeliveryService {
       data: { status: 'shipped' },
     });
 
-    return updatedDelivery;
+    return plainToInstance(Delivery, updatedDelivery, {
+      excludeExtraneousValues: true,
+    });
   }
 }

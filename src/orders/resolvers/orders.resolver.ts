@@ -22,7 +22,7 @@ import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { RequestedFields } from '../../common/decorators/requested-fields.decorator';
 import { OrderItemsLoader } from '../loaders/order-items.loader';
 import { OrderPromoCodesLoader } from '../loaders/order-promo-codes.loader';
-import DataLoader from 'dataloader'; // used in OrdersContext type
+import DataLoader from 'dataloader';
 
 type OrdersContext = {
   orderItemsLoader: OrderItemsLoader;
@@ -41,7 +41,7 @@ export class OrdersResolver {
   async allOrders(
     @RequestedFields() fields: Record<string, unknown>,
     @Args('filter', { nullable: true }) filter?: OrderFilterInput,
-  ) {
+  ): Promise<Partial<Order>[]> {
     return this.ordersService.findAll(filter ?? {}, Object.keys(fields));
   }
 
@@ -51,7 +51,7 @@ export class OrdersResolver {
     @RequestedFields() fields: Record<string, unknown>,
     @CurrentUser() user: { userId: string },
     @Args('filter', { nullable: true }) filter?: OrderFilterInput,
-  ) {
+  ): Promise<Partial<Order>[]> {
     return this.ordersService.findAllByUser(
       user.userId,
       filter ?? {},
@@ -65,7 +65,7 @@ export class OrdersResolver {
     @RequestedFields() fields: Record<string, unknown>,
     @Args({ name: 'orderId', type: () => ID }) orderId: string,
     @CurrentUser() user: { userId: string },
-  ) {
+  ): Promise<Partial<Order>> {
     return this.ordersService.findOne(
       orderId,
       user.userId,
@@ -78,7 +78,7 @@ export class OrdersResolver {
   async createOrder(
     @CurrentUser() user: { userId: string },
     @Args('input') input: CreateOrderInput,
-  ) {
+  ): Promise<Partial<Order>> {
     return this.ordersService.create(user.userId, input);
   }
 
@@ -87,7 +87,7 @@ export class OrdersResolver {
   async createSingleItemOrder(
     @CurrentUser() user: { userId: string },
     @Args('input') input: CreateSingleItemOrderInput,
-  ) {
+  ): Promise<Partial<Order>> {
     return this.ordersService.createSingleItemOrder(user.userId, input);
   }
 
@@ -95,7 +95,7 @@ export class OrdersResolver {
   @CheckPolicies((ability) => ability.can(Action.Update, 'Order'))
   async processOrder(
     @Args({ name: 'orderId', type: () => ID }) orderId: string,
-  ) {
+  ): Promise<Partial<Order>> {
     return this.ordersService.processOrder(orderId);
   }
 

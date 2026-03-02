@@ -33,7 +33,7 @@ export class ManagerProduct extends Product {
 @ObjectType()
 export class ManagerProductsPage {
   @Field(() => [ManagerProduct])
-  readonly items!: ManagerProduct[];
+  readonly items!: Partial<ManagerProduct>[];
 
   @Field(() => PaginationInfo)
   readonly pagination!: PaginationInfo;

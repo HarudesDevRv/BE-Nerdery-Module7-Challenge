@@ -5,7 +5,7 @@ import { PaginationInfo } from '../../common/models/pagination.model';
 @ObjectType()
 export class ProductsPage {
   @Field(() => [ProductWithDetails])
-  readonly items!: ProductWithDetails[];
+  readonly items!: Partial<ProductWithDetails>[];
 
   @Field(() => PaginationInfo)
   readonly pagination!: PaginationInfo;

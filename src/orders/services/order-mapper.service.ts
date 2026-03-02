@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { OrderStatus } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/client';
+import { Order } from '../models/order.model';
 
 type RawOrder = {
   userId: string;
@@ -23,9 +24,8 @@ type CreatedOrder = {
 
 @Injectable()
 export class OrderMapperService {
-  formatOrder(order: RawOrder) {
+  formatOrder(order: RawOrder): Partial<Order> {
     return {
-      userId: order.userId,
       orderId: order.orderId,
       paymentId: order.paymentId ?? undefined,
       paymentMethod: order.payment?.paymentMethod ?? undefined,
@@ -37,7 +37,7 @@ export class OrderMapperService {
     };
   }
 
-  formatCreatedOrder(order: CreatedOrder, subtotal: number) {
+  formatCreatedOrder(order: CreatedOrder, subtotal: number): Partial<Order> {
     return {
       orderId: order.orderId,
       ...(order.guestEmail && { guestEmail: order.guestEmail }),

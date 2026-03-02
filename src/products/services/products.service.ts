@@ -7,10 +7,15 @@ import { PrismaService } from '../../common/services/prisma/prisma.service';
 import { CreateProductInput } from '../dto/create-product.input';
 import { UpdateProductInput } from '../dto/update-product.input';
 import { ProductFilterInput } from '../dto/product-filter.input';
-import { Prisma } from '@prisma/client';
+import { Category, Prisma } from '@prisma/client';
 import { ManagerProductPaginationInput } from '../dto/manager-product-pagination.input';
 import { ProductImage } from '../models/product.model';
 import { ProductMapperService } from './product-mapper.service';
+import {
+  ProductsPage,
+  ProductWithDetails,
+} from '../models/product-detail.model';
+import { ManagerProduct } from '../models/manager-product.model';
 
 const productDetailSelect = {
   productId: true,
@@ -39,7 +44,7 @@ export class ProductsService {
     private productUtility: ProductMapperService,
   ) {}
 
-  async findAll(filter: ProductFilterInput) {
+  async findAll(filter: ProductFilterInput): Promise<ProductsPage> {
     const categoryId = filter.category
       ? (
           await this.prisma.category.findUnique({
@@ -86,13 +91,7 @@ export class ProductsService {
     const formattedProducts = products
       .filter((product) => product.inventories.length > 0)
       .map((product) => {
-        const images = product.images.flatMap((img) =>
-          img.url != null ? [{ imageId: img.imageId, url: img.url }] : [],
-        );
-        return this.productUtility.formatDetailedProduct({
-          ...product,
-          images,
-        });
+        return this.productUtility.formatDetailedProduct(product);
       });
 
     const totalPages = Math.ceil(totalItems / limit);
@@ -108,7 +107,7 @@ export class ProductsService {
     };
   }
 
-  async findOne(productId: string) {
+  async findOne(productId: string): Promise<Partial<ProductWithDetails>> {
     const product = await this.prisma.deletedAtFilter.product.findUnique({
       where: { productId, inventories: { some: {} } },
       select: productDetailSelect,
@@ -117,10 +116,7 @@ export class ProductsService {
     if (!product) {
       throw new NotFoundException('Product not found');
     }
-    const images = product.images.flatMap((img) =>
-      img.url != null ? [{ imageId: img.imageId, url: img.url }] : [],
-    );
-    return this.productUtility.formatDetailedProduct({ ...product, images });
+    return this.productUtility.formatDetailedProduct(product);
   }
 
   async getByManagerId(
@@ -152,13 +148,18 @@ export class ProductsService {
     };
   }
 
-  async getCategories() {
-    return this.prisma.category.findMany({
+  async getCategories(): Promise<Partial<Category>[]> {
+    const categories = await this.prisma.category.findMany({
       select: { name: true, description: true, imageUrl: true },
     });
+
+    return categories;
   }
 
-  async create(input: CreateProductInput, managerId: string) {
+  async create(
+    input: CreateProductInput,
+    managerId: string,
+  ): Promise<Partial<ManagerProduct>> {
     const newProduct = await this.prisma.product.create({
       data: {
         manager: { connect: { userId: managerId } },
@@ -175,7 +176,7 @@ export class ProductsService {
     productId: string,
     input: UpdateProductInput,
     managerId: string,
-  ) {
+  ): Promise<Partial<ManagerProduct>> {
     const product = await this.prisma.deletedAtFilter.product.findUnique({
       where: { productId },
     });
@@ -219,7 +220,11 @@ export class ProductsService {
     return true;
   }
 
-  async toggleLike(productId: string, userId: string, isActive: boolean) {
+  async toggleLike(
+    productId: string,
+    userId: string,
+    isActive: boolean,
+  ): Promise<boolean> {
     const product = await this.prisma.deletedAtFilter.product.findUnique({
       where: { productId },
     });

@@ -26,7 +26,7 @@ export class InventoryResolver {
   async addInventory(
     @Args('input') input: CreateInventoryInput,
     @CurrentUser() user: { userId: string },
-  ) {
+  ): Promise<Inventory> {
     return this.inventoryService.addInventory(input, user.userId);
   }
 
@@ -35,7 +35,7 @@ export class InventoryResolver {
     @Args({ name: 'inventoryId', type: () => ID }) inventoryId: string,
     @Args('input') input: UpdateInventoryInput,
     @CurrentUser() user: { userId: string },
-  ) {
+  ): Promise<Inventory> {
     return this.inventoryService.updateInventory(
       inventoryId,
       input,
@@ -47,7 +47,7 @@ export class InventoryResolver {
   async removeInventory(
     @Args({ name: 'inventoryId', type: () => ID }) inventoryId: string,
     @CurrentUser() user: { userId: string },
-  ) {
+  ): Promise<boolean> {
     return this.inventoryService.removeInventory(inventoryId, user.userId);
   }
 }

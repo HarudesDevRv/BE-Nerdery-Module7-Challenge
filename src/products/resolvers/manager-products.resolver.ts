@@ -31,7 +31,6 @@ import { UpdateProductInput } from '../dto/update-product.input';
 import { ProductImage } from '../models/product.model';
 import * as graphqlUploadTs from 'graphql-upload-ts';
 import DataLoader from 'dataloader';
-import { Image } from '@prisma/client';
 
 @Resolver(() => ManagerProduct)
 export class ManagerProductResolver {
@@ -45,7 +44,7 @@ export class ManagerProductResolver {
   async managerProducts(
     @CurrentUser() user: { userId: string },
     @Args('filter', { nullable: true }) filter?: ProductFilterInput,
-  ) {
+  ): Promise<ManagerProductsPage> {
     return this.productsService.getByManagerId(user.userId, filter ?? {});
   }
 
@@ -55,7 +54,7 @@ export class ManagerProductResolver {
   async createProduct(
     @Args('input') input: CreateProductInput,
     @CurrentUser() user: { userId: string },
-  ) {
+  ): Promise<Partial<ManagerProduct>> {
     const product = await this.productsService.create(input, user.userId);
     return product;
   }
@@ -67,7 +66,7 @@ export class ManagerProductResolver {
     @Args({ name: 'productId', type: () => ID }) productId: string,
     @Args('input') input: UpdateProductInput,
     @CurrentUser() user: { userId: string },
-  ) {
+  ): Promise<Partial<ManagerProduct>> {
     return this.productsService.update(productId, input, user.userId);
   }
 
@@ -161,15 +160,15 @@ export class ManagerProductResolver {
   async inventories(
     @Parent() product: ManagerProduct,
     @Context('inventoriesLoader') loader: DataLoader<string, Inventory[]>,
-  ) {
+  ): Promise<Inventory[]> {
     return loader.load(product.productId);
   }
 
   @ResolveField(() => [ProductImage])
   async images(
     @Parent() product: ManagerProduct,
-    @Context('imagesLoader') loader: DataLoader<string, Image[]>,
-  ) {
+    @Context('imagesLoader') loader: DataLoader<string, ProductImage[]>,
+  ): Promise<ProductImage[]> {
     return loader.load(product.productId);
   }
 }

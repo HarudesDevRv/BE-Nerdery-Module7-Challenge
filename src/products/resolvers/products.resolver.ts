@@ -17,7 +17,6 @@ import {
   ProductsPage,
 } from '../models/product-detail.model';
 import DataLoader from 'dataloader';
-import { Image } from '@prisma/client';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { PoliciesGuard } from 'src/common/casl/policies.guard';
 import { CheckPolicies } from 'src/common/casl/check-policies.decorator';
@@ -29,21 +28,21 @@ export class ProductsResolver {
   constructor(private productsService: ProductsService) {}
 
   @Query(() => [Category])
-  productCategories() {
+  productCategories(): Promise<Partial<Category>[]> {
     return this.productsService.getCategories();
   }
 
   @Query(() => ProductsPage)
   async products(
     @Args('filter', { nullable: true }) filter?: ProductFilterInput,
-  ) {
+  ): Promise<ProductsPage> {
     return this.productsService.findAll(filter ?? {});
   }
 
   @Query(() => ProductWithDetails)
   productDetail(
     @Args({ name: 'productId', type: () => ID }) productId: string,
-  ) {
+  ): Promise<Partial<ProductWithDetails>> {
     return this.productsService.findOne(productId);
   }
 
@@ -61,8 +60,8 @@ export class ProductsResolver {
   @ResolveField(() => [ProductImage])
   async images(
     @Parent() product: Product,
-    @Context('imagesLoader') loader: DataLoader<string, Image[]>,
-  ) {
+    @Context('imagesLoader') loader: DataLoader<string, ProductImage[]>,
+  ): Promise<Partial<ProductImage>[]> {
     return loader.load(product.productId);
   }
 }

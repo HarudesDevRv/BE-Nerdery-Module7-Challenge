@@ -16,13 +16,13 @@ export class DeliveryResolver {
 
   @Query(() => Delivery)
   @CheckPolicies((ability) => ability.can(Action.Read, 'Delivery'))
-  deliveryByOrder(@Args('orderId') orderId: string) {
+  deliveryByOrder(@Args('orderId') orderId: string): Promise<Delivery> {
     return this.deliveryService.findByOrder(orderId);
   }
 
   @Query(() => [Delivery])
   @CheckPolicies((ability) => ability.can(Action.Read, 'Delivery'))
-  myDeliveries(@CurrentUser() user: { userId: string }) {
+  myDeliveries(@CurrentUser() user: { userId: string }): Promise<Delivery[]> {
     return this.deliveryService.findAssigned(user.userId);
   }
 
@@ -31,7 +31,7 @@ export class DeliveryResolver {
   updateDeliveryStatus(
     @Args({ name: 'deliveryId', type: () => ID }) deliveryId: string,
     @Args('input') input: UpdateDeliveryInput,
-  ) {
+  ): Promise<Delivery> {
     return this.deliveryService.updateStatus(deliveryId, input);
   }
 
@@ -39,9 +39,18 @@ export class DeliveryResolver {
   @CheckPolicies((ability) => ability.can(Action.Manage, 'Delivery'))
   assignDelivery(
     @Args({ name: 'deliveryId', type: () => ID }) deliveryId: string,
+    @CurrentUser() user: { userId: string },
+  ): Promise<Delivery> {
+    return this.deliveryService.assign(deliveryId, user.userId);
+  }
+
+  @Mutation(() => Delivery)
+  @CheckPolicies((ability) => ability.can(Action.Manage, 'Delivery'))
+  completeDelivery(
+    @Args({ name: 'deliveryId', type: () => ID }) deliveryId: string,
     @Args({ name: 'deliveryPersonId', type: () => ID })
     deliveryPersonId: string,
-  ) {
-    return this.deliveryService.assign(deliveryId, deliveryPersonId);
+  ): Promise<Delivery> {
+    return this.deliveryService.completeDelivery(deliveryId, deliveryPersonId);
   }
 }

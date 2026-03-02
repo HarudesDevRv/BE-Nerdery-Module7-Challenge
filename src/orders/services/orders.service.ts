@@ -13,6 +13,7 @@ import { CreateSingleItemOrderInput } from '../dto/create-single-item-order.inpu
 import { OrderFilterInput } from '../dto/order-filter.input';
 import { OrderMapperService } from './order-mapper.service';
 import { buildOrderSelect } from '../utils/order-field-map';
+import { Order } from '../models/order.model';
 
 @Injectable()
 export class OrdersService {
@@ -26,7 +27,7 @@ export class OrdersService {
     userId: string,
     filter: OrderFilterInput,
     requestedFields: string[],
-  ) {
+  ): Promise<Partial<Order>[]> {
     const take = filter.limit || 10;
     const skip = filter.offset ?? 0;
     const orders = (await this.prisma.order.findMany({
@@ -58,7 +59,10 @@ export class OrdersService {
     return orders.map((order) => this.orderUtils.formatOrder(order));
   }
 
-  async findAll(filter: OrderFilterInput, requestedFields: string[]) {
+  async findAll(
+    filter: OrderFilterInput,
+    requestedFields: string[],
+  ): Promise<Partial<Order>[]> {
     const take = filter.limit || 10;
     const skip = filter.offset ?? 0;
     const orders = (await this.prisma.order.findMany({
@@ -89,7 +93,11 @@ export class OrdersService {
     return orders.map((order) => this.orderUtils.formatOrder(order));
   }
 
-  async findOne(orderId: string, userId: string, requestedFields: string[]) {
+  async findOne(
+    orderId: string,
+    userId: string,
+    requestedFields: string[],
+  ): Promise<Partial<Order>> {
     const order = (await this.prisma.order.findUnique({
       where: { orderId },
       select: buildOrderSelect(requestedFields),
@@ -106,7 +114,10 @@ export class OrdersService {
     return this.orderUtils.formatOrder(order);
   }
 
-  async create(userId: string, input: CreateOrderInput) {
+  async create(
+    userId: string,
+    input: CreateOrderInput,
+  ): Promise<Partial<Order>> {
     const cart = await this.prisma.cart.findUnique({
       where: { userId },
       include: {
@@ -169,7 +180,7 @@ export class OrdersService {
   async createSingleItemOrder(
     userId: string,
     input: CreateSingleItemOrderInput,
-  ) {
+  ): Promise<Partial<Order>> {
     const [inventory, user] = await Promise.all([
       this.prisma.inventory.findUnique({
         where: { inventoryId: input.inventoryId },
@@ -209,7 +220,9 @@ export class OrdersService {
     return this.orderUtils.formatCreatedOrder(newOrder, subtotal);
   }
 
-  async createGuestOrder(input: CreateGuestOrderInput) {
+  async createGuestOrder(
+    input: CreateGuestOrderInput,
+  ): Promise<Partial<Order>> {
     const inventory = await this.prisma.deletedAtFilter.inventory.findUnique({
       where: { inventoryId: input.inventoryId },
     });
@@ -245,7 +258,7 @@ export class OrdersService {
     return this.orderUtils.formatCreatedOrder(newOrder, subtotal);
   }
 
-  async processOrder(orderId: string) {
+  async processOrder(orderId: string): Promise<Partial<Order>> {
     const order = await this.prisma.order.findUnique({
       where: { orderId },
     });
@@ -263,6 +276,12 @@ export class OrdersService {
       data: { status: 'processing' },
     });
 
-    return updatedOrder;
+    return {
+      ...updatedOrder,
+      paymentId: updatedOrder.paymentId ?? undefined,
+      guestEmail: updatedOrder.guestEmail ?? undefined,
+      subtotal: updatedOrder.subtotal.toNumber(),
+      total: updatedOrder.total.toNumber(),
+    };
   }
 }

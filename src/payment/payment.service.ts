@@ -25,7 +25,7 @@ export class PaymentService {
     private notificationsProducer: NotificationsProducer,
   ) {}
 
-  private async validateOrder(orderId: string) {
+  private async validateOrder(orderId: string): Promise<void> {
     const order = await this.prisma.order.findUnique({
       where: { orderId },
     });

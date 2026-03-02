@@ -58,7 +58,7 @@ export class CartService {
     return this.cartUtils.formatCart(cart);
   }
 
-  async addItem(userId: string, input: AddToCartInput) {
+  async addItem(userId: string, input: AddToCartInput): Promise<Cart> {
     const cart = await this.getUserCart(userId);
 
     const inventory = await this.prisma.deletedAtFilter.inventory.findUnique({
@@ -87,7 +87,7 @@ export class CartService {
     return this.cartUtils.formatCart(newCart.cart);
   }
 
-  async updateItem(userId: string, input: UpdateCartItemInput) {
+  async updateItem(userId: string, input: UpdateCartItemInput): Promise<Cart> {
     const cart = await this.getUserCart(userId);
 
     const inventory = await this.prisma.deletedAtFilter.inventory.findUnique({
@@ -120,7 +120,7 @@ export class CartService {
     return this.cartUtils.formatCart(newCart.cart);
   }
 
-  async removeItem(userId: string, inventoryId: string) {
+  async removeItem(userId: string, inventoryId: string): Promise<Cart> {
     const cart = await this.getUserCart(userId);
 
     const newCart = await this.prisma.cartItem.delete({
@@ -135,7 +135,7 @@ export class CartService {
     return this.cartUtils.formatCart(newCart.cart);
   }
 
-  async clearCart(userId: string) {
+  async clearCart(userId: string): Promise<boolean> {
     const cart = await this.getUserCart(userId);
 
     await this.prisma.cartItem.deleteMany({

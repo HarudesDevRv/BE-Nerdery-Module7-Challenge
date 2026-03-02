@@ -17,7 +17,7 @@ export class CartResolver {
   constructor(private cartService: CartService) {}
 
   @Query(() => Cart)
-  myCart(@CurrentUser() user: { userId: string }) {
+  myCart(@CurrentUser() user: { userId: string }): Promise<Cart> {
     return this.cartService.getCart(user.userId);
   }
 
@@ -25,7 +25,7 @@ export class CartResolver {
   addToCart(
     @CurrentUser() user: { userId: string },
     @Args('input') input: AddToCartInput,
-  ) {
+  ): Promise<Cart> {
     return this.cartService.addItem(user.userId, input);
   }
 
@@ -33,7 +33,7 @@ export class CartResolver {
   updateCartItem(
     @CurrentUser() user: { userId: string },
     @Args('input') input: UpdateCartItemInput,
-  ) {
+  ): Promise<Cart> {
     return this.cartService.updateItem(user.userId, input);
   }
 
@@ -41,12 +41,12 @@ export class CartResolver {
   removeCartItem(
     @CurrentUser() user: { userId: string },
     @Args({ name: 'inventoryId', type: () => ID }) inventoryId: string,
-  ) {
+  ): Promise<Cart> {
     return this.cartService.removeItem(user.userId, inventoryId);
   }
 
   @Mutation(() => Boolean)
-  clearCart(@CurrentUser() user: { userId: string }) {
+  clearCart(@CurrentUser() user: { userId: string }): Promise<boolean> {
     return this.cartService.clearCart(user.userId);
   }
 }

@@ -7,6 +7,7 @@ import {
 import { PrismaService } from '../common/services/prisma/prisma.service';
 import { CreateInventoryInput } from './dto/create-inventory.input';
 import { UpdateInventoryInput } from './dto/update-inventory.input';
+import { Inventory } from 'src/products/models/manager-product.model';
 
 @Injectable()
 export class InventoryService {
@@ -19,7 +20,10 @@ export class InventoryService {
     });
   }
 
-  async addInventory(input: CreateInventoryInput, managerId: string) {
+  async addInventory(
+    input: CreateInventoryInput,
+    managerId: string,
+  ): Promise<Inventory> {
     const product = await this.prisma.deletedAtFilter.product.findUnique({
       where: { productId: input.productId },
     });
@@ -84,7 +88,7 @@ export class InventoryService {
     inventoryId: string,
     input: UpdateInventoryInput,
     managerId: string,
-  ) {
+  ): Promise<Inventory> {
     const inventory = await this.prisma.deletedAtFilter.inventory.findUnique({
       where: { inventoryId },
       include: { product: true },
@@ -110,7 +114,10 @@ export class InventoryService {
     };
   }
 
-  async removeInventory(inventoryId: string, managerId: string) {
+  async removeInventory(
+    inventoryId: string,
+    managerId: string,
+  ): Promise<boolean> {
     const inventory = await this.prisma.deletedAtFilter.inventory.findUnique({
       where: { inventoryId },
       include: { product: true },
