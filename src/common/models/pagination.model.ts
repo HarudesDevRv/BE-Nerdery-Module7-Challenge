@@ -3,10 +3,13 @@ import { ObjectType, Field, Int } from '@nestjs/graphql';
 @ObjectType()
 export class PaginationInfo {
   @Field(() => Int)
-  totalItems: number;
+  readonly totalItems!: number;
+
   @Field(() => Int)
-  totalPages: number;
+  readonly totalPages!: number;
+
   @Field(() => Int)
-  currentPage: number;
-  hasNextPage: boolean;
+  readonly currentPage!: number;
+
+  readonly hasNextPage!: boolean;
 }
