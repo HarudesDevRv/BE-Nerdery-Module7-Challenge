@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { Role } from '@prisma/client';
 import { plainToInstance } from 'class-transformer';
 import { PrismaService } from '../common/services/prisma/prisma.service';
@@ -7,13 +7,16 @@ import { UserProfileDto } from './dto/res/user-profile.dto';
 
 @Injectable()
 export class UsersService {
+  private readonly logger = new Logger(UsersService.name);
   constructor(private prisma: PrismaService) {}
 
   async findByEmail(email: string) {
+    this.logger.log(`Finding user by email: ${email}`);
     return this.prisma.user.findUnique({ where: { email } });
   }
 
   async findById(userId: string) {
+    this.logger.log(`Finding user by ID: ${userId}`);
     return this.prisma.user.findUnique({
       where: { userId },
       include: { address: true },
@@ -27,6 +30,7 @@ export class UsersService {
     password: string;
     role: Role;
   }) {
+    this.logger.log(`Creating user: ${data.email} (role: ${data.role})`);
     return this.prisma.user.create({
       include: { address: {} },
       data: {
@@ -42,6 +46,7 @@ export class UsersService {
   }
 
   async updatePassword(userId: string, hashedPassword: string) {
+    this.logger.log(`Updating password for userId: ${userId}`);
     return this.prisma.user.update({
       where: { userId },
       data: { password: hashedPassword },
@@ -52,6 +57,7 @@ export class UsersService {
     userId: string,
     dto: UpdateProfileDto,
   ): Promise<UserProfileDto> {
+    this.logger.log(`Updating profile for userId: ${userId}`);
     const user = await this.prisma.user.update({
       where: { userId },
       include: { address: true },

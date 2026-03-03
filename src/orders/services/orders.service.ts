@@ -3,6 +3,7 @@ import {
   ForbiddenException,
   Injectable,
   InternalServerErrorException,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { CartService } from '../../cart/services/cart.service';
@@ -17,6 +18,7 @@ import { Order } from '../models/order.model';
 
 @Injectable()
 export class OrdersService {
+  private readonly logger = new Logger(OrdersService.name);
   constructor(
     private prisma: PrismaService,
     private orderUtils: OrderMapperService,
@@ -28,6 +30,7 @@ export class OrdersService {
     filter: OrderFilterInput,
     requestedFields: string[],
   ): Promise<Partial<Order>[]> {
+    this.logger.log(`Fetching orders for userId: ${userId}`);
     const take = filter.limit || 10;
     const skip = filter.offset ?? 0;
     const orders = (await this.prisma.order.findMany({
@@ -63,6 +66,7 @@ export class OrdersService {
     filter: OrderFilterInput,
     requestedFields: string[],
   ): Promise<Partial<Order>[]> {
+    this.logger.log('Fetching all orders (admin)');
     const take = filter.limit || 10;
     const skip = filter.offset ?? 0;
     const orders = (await this.prisma.order.findMany({
@@ -98,6 +102,7 @@ export class OrdersService {
     userId: string,
     requestedFields: string[],
   ): Promise<Partial<Order>> {
+    this.logger.log(`Fetching orderId: ${orderId} for userId: ${userId}`);
     const order = (await this.prisma.order.findUnique({
       where: { orderId },
       select: buildOrderSelect(requestedFields),
@@ -118,6 +123,7 @@ export class OrdersService {
     userId: string,
     input: CreateOrderInput,
   ): Promise<Partial<Order>> {
+    this.logger.log(`Creating order from cart for userId: ${userId}`);
     const cart = await this.prisma.cart.findUnique({
       where: { userId },
       include: {
@@ -173,6 +179,7 @@ export class OrdersService {
     });
 
     await this.cartService.clearCart(userId);
+    this.logger.log(`Order created: ${newOrder.orderId} for userId: ${userId}`);
 
     return this.orderUtils.formatCreatedOrder(newOrder, subtotal);
   }
@@ -181,6 +188,7 @@ export class OrdersService {
     userId: string,
     input: CreateSingleItemOrderInput,
   ): Promise<Partial<Order>> {
+    this.logger.log(`Creating single-item order for userId: ${userId}, inventoryId: ${input.inventoryId}`);
     const [inventory, user] = await Promise.all([
       this.prisma.inventory.findUnique({
         where: { inventoryId: input.inventoryId },
@@ -223,6 +231,7 @@ export class OrdersService {
   async createGuestOrder(
     input: CreateGuestOrderInput,
   ): Promise<Partial<Order>> {
+    this.logger.log(`Creating guest order for email: ${input.email}, inventoryId: ${input.inventoryId}`);
     const inventory = await this.prisma.deletedAtFilter.inventory.findUnique({
       where: { inventoryId: input.inventoryId },
     });
@@ -259,6 +268,7 @@ export class OrdersService {
   }
 
   async processOrder(orderId: string): Promise<Partial<Order>> {
+    this.logger.log(`Processing orderId: ${orderId}`);
     const order = await this.prisma.order.findUnique({
       where: { orderId },
     });
@@ -276,6 +286,7 @@ export class OrdersService {
       data: { status: 'processing' },
     });
 
+    this.logger.log(`Order ${orderId} moved to processing`);
     return {
       ...updatedOrder,
       paymentId: updatedOrder.paymentId ?? undefined,

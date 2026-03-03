@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { S3Client, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 import { ConfigService } from '@nestjs/config';
@@ -9,6 +9,7 @@ import path from 'path';
 export class S3Service {
   private readonly client: S3Client;
   private readonly bucket: string;
+  private readonly logger = new Logger(S3Service.name);
   constructor(configService: ConfigService) {
     const region = configService.getOrThrow<string>('AWS_REGION', 'us-east-1');
     this.client = new S3Client({
@@ -21,6 +22,7 @@ export class S3Service {
     file: graphqlUploadTs.FileUpload,
     uploadKey: string,
   ): Promise<string | undefined> {
+    this.logger.log(`Uploading image with key: ${uploadKey}`);
     const stream = file.createReadStream();
 
     const extension = path.extname(file.filename);
@@ -38,11 +40,13 @@ export class S3Service {
     });
 
     const uploadedFile = await upload.done();
+    this.logger.log(`Image uploaded successfully: ${uploadedFile.Location}`);
 
     return uploadedFile.Location;
   }
 
   async DeleteImage(fileKey: string): Promise<boolean> {
+    this.logger.log(`Deleting image with key: ${fileKey}`);
     const deleteParams = {
       Bucket: this.bucket,
       Key: fileKey,
@@ -51,11 +55,11 @@ export class S3Service {
     const deleteCommand = new DeleteObjectCommand(deleteParams);
 
     try {
-      const deletedImage = await this.client.send(deleteCommand);
-      console.log(deletedImage);
+      await this.client.send(deleteCommand);
+      this.logger.log(`Image deleted successfully: ${fileKey}`);
       return true;
     } catch (error) {
-      console.log(error);
+      this.logger.error(`Failed to delete image: ${fileKey}`, error);
       throw new Error('Could not delete file');
     }
   }

@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Injectable,
   InternalServerErrorException,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../../common/services/prisma/prisma.service';
@@ -23,6 +24,7 @@ const cartInventoryInclude = {
 
 @Injectable()
 export class CartService {
+  private readonly logger = new Logger(CartService.name);
   constructor(
     private prisma: PrismaService,
     private cartUtils: CartUtilsService,
@@ -42,6 +44,7 @@ export class CartService {
   }
 
   async getCart(userId: string): Promise<Cart> {
+    this.logger.log(`Fetching cart for userId: ${userId}`);
     const cart = await this.prisma.cart.findUnique({
       where: { userId },
       include: {
@@ -59,6 +62,7 @@ export class CartService {
   }
 
   async addItem(userId: string, input: AddToCartInput): Promise<Cart> {
+    this.logger.log(`Adding item inventoryId: ${input.inventoryId} (qty: ${input.amount}) to cart for userId: ${userId}`);
     const cart = await this.getUserCart(userId);
 
     const inventory = await this.prisma.deletedAtFilter.inventory.findUnique({
@@ -88,6 +92,7 @@ export class CartService {
   }
 
   async updateItem(userId: string, input: UpdateCartItemInput): Promise<Cart> {
+    this.logger.log(`Updating cart item inventoryId: ${input.inventoryId} to qty: ${input.amount} for userId: ${userId}`);
     const cart = await this.getUserCart(userId);
 
     const inventory = await this.prisma.deletedAtFilter.inventory.findUnique({
@@ -121,6 +126,7 @@ export class CartService {
   }
 
   async removeItem(userId: string, inventoryId: string): Promise<Cart> {
+    this.logger.log(`Removing item inventoryId: ${inventoryId} from cart for userId: ${userId}`);
     const cart = await this.getUserCart(userId);
 
     const newCart = await this.prisma.cartItem.delete({
@@ -136,6 +142,7 @@ export class CartService {
   }
 
   async clearCart(userId: string): Promise<boolean> {
+    this.logger.log(`Clearing cart for userId: ${userId}`);
     const cart = await this.getUserCart(userId);
 
     await this.prisma.cartItem.deleteMany({

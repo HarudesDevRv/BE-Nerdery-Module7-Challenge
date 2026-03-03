@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ForbiddenException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../common/services/prisma/prisma.service';
@@ -11,9 +12,11 @@ import { Delivery } from './models/delivery.model';
 
 @Injectable()
 export class DeliveryService {
+  private readonly logger = new Logger(DeliveryService.name);
   constructor(private prisma: PrismaService) {}
 
   async findByOrder(orderId: string) {
+    this.logger.log(`Fetching delivery for orderId: ${orderId}`);
     const delivery = await this.prisma.delivery.findUnique({
       where: { orderId },
     });
@@ -23,6 +26,7 @@ export class DeliveryService {
   }
 
   async findAssigned(deliveryPersonId: string) {
+    this.logger.log(`Fetching assigned deliveries for deliveryPersonId: ${deliveryPersonId}`);
     const deliveries = await this.prisma.delivery.findMany({
       where: { deliveryPersonId, order: { status: 'shipped' } },
     });
@@ -35,6 +39,7 @@ export class DeliveryService {
   }
 
   async updateStatus(deliveryId: string, input: UpdateDeliveryInput) {
+    this.logger.log(`Updating status for deliveryId: ${deliveryId}`);
     const updatedDelivery = await this.prisma.delivery.update({
       where: { deliveryId },
       data: {
@@ -49,6 +54,7 @@ export class DeliveryService {
   }
 
   async completeDelivery(deliveryId: string, deliveryPersonId: string) {
+    this.logger.log(`Completing deliveryId: ${deliveryId} by deliveryPersonId: ${deliveryPersonId}`);
     const delivery = await this.prisma.delivery.findUnique({
       where: { deliveryId },
     });
@@ -71,12 +77,14 @@ export class DeliveryService {
       data: { status: 'delivered' },
     });
 
+    this.logger.log(`Delivery ${deliveryId} marked as delivered`);
     return plainToInstance(Delivery, updatedDelivery, {
       excludeExtraneousValues: true,
     });
   }
 
   async assign(deliveryId: string, deliveryPersonId: string) {
+    this.logger.log(`Assigning deliveryId: ${deliveryId} to deliveryPersonId: ${deliveryPersonId}`);
     const deliveryPerson = await this.prisma.user.findUnique({
       where: { userId: deliveryPersonId },
     });
@@ -110,6 +118,7 @@ export class DeliveryService {
       data: { status: 'shipped' },
     });
 
+    this.logger.log(`Delivery ${deliveryId} assigned to deliveryPersonId: ${deliveryPersonId}`);
     return plainToInstance(Delivery, updatedDelivery, {
       excludeExtraneousValues: true,
     });

@@ -1,4 +1,4 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../common/services/prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
@@ -17,6 +17,7 @@ import { randomUUID } from 'crypto';
 @Injectable()
 export class AuthService {
   private readonly saltRounds: number;
+  private readonly logger = new Logger(AuthService.name);
 
   constructor(
     private prisma: PrismaService,
@@ -31,6 +32,7 @@ export class AuthService {
   }
 
   async createAccessToken(email: string): Promise<RefreshTokenDto> {
+    this.logger.log(`Creating access token for user: ${email}`);
     const user = await this.usersService.findByEmail(email);
 
     if (!user) {
@@ -57,6 +59,7 @@ export class AuthService {
   }
 
   async createResetToken(email: string): Promise<ResetTokenDto> {
+    this.logger.log(`Creating password reset token for: ${email}`);
     const user = await this.usersService.findByEmail(email);
 
     if (!user) {
@@ -83,9 +86,11 @@ export class AuthService {
   }
 
   async signup(dto: RegisterDto): Promise<UserDto> {
+    this.logger.log(`Signup attempt for: ${dto.email}`);
     const exists = await this.usersService.findByEmail(dto.email);
 
     if (exists) {
+      this.logger.warn(`Signup failed — email already registered: ${dto.email}`);
       throw new ConflictException('Email already registered');
     }
 
@@ -98,27 +103,33 @@ export class AuthService {
     });
 
     const authToken = await this.createAccessToken(newUser.email);
+    this.logger.log(`User registered successfully: ${newUser.email}`);
 
     return plainToInstance(UserDto, { ...newUser, ...authToken });
   }
 
   async signin(dto: LoginDto): Promise<RefreshTokenDto> {
+    this.logger.log(`Signin attempt for: ${dto.email}`);
     const exists = await this.usersService.findByEmail(dto.email);
 
     if (!exists) {
+      this.logger.warn(`Signin failed — email not registered: ${dto.email}`);
       throw new ConflictException('Email not registered');
     }
 
     const matches = await bcrypt.compare(dto.password, exists.password);
 
     if (!matches) {
+      this.logger.warn(`Signin failed — invalid password for: ${dto.email}`);
       throw new ConflictException("The email and password don't match");
     }
 
+    this.logger.log(`User signed in successfully: ${dto.email}`);
     return this.createAccessToken(exists.email);
   }
 
   async signout(token: string): Promise<void> {
+    this.logger.log('Signout attempt');
     const payload: unknown = this.jwtService.decode(token);
 
     if (
@@ -151,9 +162,11 @@ export class AuthService {
       where: { tokenId: jti },
       data: { revoked: true },
     });
+    this.logger.log(`Token revoked: ${jti}`);
   }
 
   async forgotPassword(email: string): Promise<ResetTokenDto> {
+    this.logger.log(`Forgot password request for: ${email}`);
     const user = await this.usersService.findByEmail(email);
 
     if (!user) {
@@ -167,11 +180,13 @@ export class AuthService {
       resetToken: resetPassword.reset_token,
       expiresAt: resetPassword.expires_at,
     });
+    this.logger.log(`Password reset notification queued for: ${email}`);
 
     return resetPassword;
   }
 
   async resetPassword(body: ResetPasswordDto): Promise<RefreshTokenDto> {
+    this.logger.log('Password reset attempt');
     const token = await this.prisma.passwordReset.findUnique({
       where: {
         resetToken: body.reset_token,
@@ -214,7 +229,9 @@ export class AuthService {
         },
       });
 
-      return this.createAccessToken(user.email);
+      const newAccessToken = this.createAccessToken(user.email);
+      this.logger.log(`Password reset successfully for userId: ${token.userId}`);
+      return newAccessToken;
     });
 
     return newToken;

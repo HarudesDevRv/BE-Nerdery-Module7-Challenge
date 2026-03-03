@@ -2,6 +2,7 @@ import {
   ConflictException,
   ForbiddenException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../common/services/prisma/prisma.service';
@@ -11,9 +12,11 @@ import { Inventory } from 'src/products/models/manager-product.model';
 
 @Injectable()
 export class InventoryService {
+  private readonly logger = new Logger(InventoryService.name);
   constructor(private prisma: PrismaService) {}
 
   async getStores() {
+    this.logger.log('Fetching all stores');
     return this.prisma.store.findMany({
       where: { deletedAt: null },
       select: { storeId: true, name: true },
@@ -24,6 +27,7 @@ export class InventoryService {
     input: CreateInventoryInput,
     managerId: string,
   ): Promise<Inventory> {
+    this.logger.log(`Adding inventory for productId: ${input.productId}, storeId: ${input.storeId} by managerId: ${managerId}`);
     const product = await this.prisma.deletedAtFilter.product.findUnique({
       where: { productId: input.productId },
     });
@@ -89,6 +93,7 @@ export class InventoryService {
     input: UpdateInventoryInput,
     managerId: string,
   ): Promise<Inventory> {
+    this.logger.log(`Updating inventoryId: ${inventoryId} by managerId: ${managerId}`);
     const inventory = await this.prisma.deletedAtFilter.inventory.findUnique({
       where: { inventoryId },
       include: { product: true },
@@ -118,6 +123,7 @@ export class InventoryService {
     inventoryId: string,
     managerId: string,
   ): Promise<boolean> {
+    this.logger.log(`Removing inventoryId: ${inventoryId} by managerId: ${managerId}`);
     const inventory = await this.prisma.deletedAtFilter.inventory.findUnique({
       where: { inventoryId },
       include: { product: true },

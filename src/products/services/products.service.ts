@@ -1,6 +1,7 @@
 import {
   ForbiddenException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../../common/services/prisma/prisma.service';
@@ -39,12 +40,14 @@ const productDetailSelect = {
 
 @Injectable()
 export class ProductsService {
+  private readonly logger = new Logger(ProductsService.name);
   constructor(
     private prisma: PrismaService,
     private productUtility: ProductMapperService,
   ) {}
 
   async findAll(filter: ProductFilterInput): Promise<ProductsPage> {
+    this.logger.log('Fetching all products');
     const categoryId = filter.category
       ? (
           await this.prisma.category.findUnique({
@@ -108,6 +111,7 @@ export class ProductsService {
   }
 
   async findOne(productId: string): Promise<Partial<ProductWithDetails>> {
+    this.logger.log(`Fetching product: ${productId}`);
     const product = await this.prisma.deletedAtFilter.product.findUnique({
       where: { productId, inventories: { some: {} } },
       select: productDetailSelect,
@@ -123,6 +127,7 @@ export class ProductsService {
     managerId: string,
     pagination: ManagerProductPaginationInput,
   ) {
+    this.logger.log(`Fetching products for managerId: ${managerId}`);
     const limit = pagination.limit || 10;
     const page = pagination.page || 1;
 
@@ -149,6 +154,7 @@ export class ProductsService {
   }
 
   async getCategories(): Promise<Partial<Category>[]> {
+    this.logger.log('Fetching categories');
     const categories = await this.prisma.category.findMany({
       select: { name: true, description: true, imageUrl: true },
     });
@@ -160,6 +166,7 @@ export class ProductsService {
     input: CreateProductInput,
     managerId: string,
   ): Promise<Partial<ManagerProduct>> {
+    this.logger.log(`Creating product "${input.name}" for managerId: ${managerId}`);
     const newProduct = await this.prisma.product.create({
       data: {
         manager: { connect: { userId: managerId } },
@@ -177,6 +184,7 @@ export class ProductsService {
     input: UpdateProductInput,
     managerId: string,
   ): Promise<Partial<ManagerProduct>> {
+    this.logger.log(`Updating product: ${productId} by managerId: ${managerId}`);
     const product = await this.prisma.deletedAtFilter.product.findUnique({
       where: { productId },
     });
@@ -200,6 +208,7 @@ export class ProductsService {
   }
 
   async delete(productId: string, managerId: string): Promise<boolean> {
+    this.logger.log(`Soft-deleting product: ${productId} by managerId: ${managerId}`);
     const product = await this.prisma.deletedAtFilter.product.findUnique({
       where: { productId },
     });
@@ -225,6 +234,7 @@ export class ProductsService {
     userId: string,
     isActive: boolean,
   ): Promise<boolean> {
+    this.logger.log(`Toggling like on product: ${productId} by userId: ${userId} — isActive: ${isActive}`);
     const product = await this.prisma.deletedAtFilter.product.findUnique({
       where: { productId },
     });
@@ -257,6 +267,7 @@ export class ProductsService {
     userId: string | null,
     url?: string,
   ): Promise<ProductImage> {
+    this.logger.log(`Creating image for product: ${productId}`);
     const product = await this.prisma.deletedAtFilter.product.findUnique({
       where: { productId },
     });
@@ -284,6 +295,7 @@ export class ProductsService {
     url: string,
     userId: string,
   ): Promise<ProductImage> {
+    this.logger.log(`Updating image URL for imageId: ${imageId}`);
     const image = await this.prisma.deletedAtFilter.image.findUnique({
       where: { imageId },
       include: { product: true },
@@ -306,6 +318,7 @@ export class ProductsService {
   }
 
   async deleteImage(imageId: string, userId: string): Promise<ProductImage> {
+    this.logger.log(`Soft-deleting imageId: ${imageId}`);
     const image = await this.prisma.deletedAtFilter.image.findUnique({
       where: { imageId },
       include: { product: true },

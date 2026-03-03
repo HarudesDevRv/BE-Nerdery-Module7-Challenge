@@ -1,4 +1,8 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Stripe from 'stripe';
 
@@ -21,6 +25,7 @@ type PromoCode = {
 @Injectable()
 export class StripeService {
   private stripe: Stripe;
+  private readonly logger = new Logger(StripeService.name);
 
   constructor(private configService: ConfigService) {
     this.stripe = new Stripe(
@@ -29,6 +34,7 @@ export class StripeService {
   }
 
   async createCheckoutSession(items: ItemData[]) {
+    this.logger.log(`Creating checkout session for ${items.length} item(s)`);
     try {
       const session = await this.stripe.checkout.sessions.create({
         success_url: 'https://example.com/success',
@@ -43,6 +49,7 @@ export class StripeService {
         mode: 'payment',
         allow_promotion_codes: true,
       });
+      this.logger.log(`Checkout session created: ${session.id}`);
       return {
         url: session.url,
         checkoutSessionId: session.id,
@@ -59,12 +66,15 @@ export class StripeService {
   }
 
   async createPaymentIntent(amount: number, currency: string) {
+    this.logger.log(
+      `Creating payment intent: amount=${amount}, currency=${currency}`,
+    );
     try {
       const paymentIntent = await this.stripe.paymentIntents.create({
         amount,
         currency,
       });
-      console.log(paymentIntent);
+      this.logger.log(`Payment intent created: ${paymentIntent.id}`);
       return {
         clientSecret: paymentIntent.client_secret,
         paymentIntentId: paymentIntent.id,
@@ -83,6 +93,7 @@ export class StripeService {
   async createPromoCode(
     params: PromoCode,
   ): Promise<{ stripeCouponId: string; stripePromotionCodeId: string }> {
+    this.logger.log(`Creating promo code: ${params.code}`);
     try {
       const couponParams: Stripe.CouponCreateParams = {
         name: params.code,
@@ -120,6 +131,9 @@ export class StripeService {
       const promotionCode =
         await this.stripe.promotionCodes.create(promoParams);
 
+      this.logger.log(
+        `Promo code created — coupon: ${coupon.id}, promotionCode: ${promotionCode.id}`,
+      );
       return {
         stripeCouponId: coupon.id,
         stripePromotionCodeId: promotionCode.id,
@@ -136,6 +150,7 @@ export class StripeService {
     stripePromotionCodeId: string,
     params: { isActive?: boolean; minAmount?: number | null },
   ): Promise<void> {
+    this.logger.log(`Updating promo code: ${stripePromotionCodeId}`);
     try {
       const updateParams: Stripe.PromotionCodeUpdateParams = {};
       if (params.isActive !== undefined) {
@@ -161,6 +176,7 @@ export class StripeService {
   }
 
   async deleteCoupon(stripeCouponId: string): Promise<void> {
+    this.logger.log(`Deleting coupon: ${stripeCouponId}`);
     try {
       await this.stripe.coupons.del(stripeCouponId);
     } catch (error) {
@@ -172,6 +188,7 @@ export class StripeService {
   }
 
   async disablePromoCode(stripePromotionCodeId: string): Promise<void> {
+    this.logger.log(`Disabling promo code: ${stripePromotionCodeId}`);
     try {
       await this.stripe.promotionCodes.update(stripePromotionCodeId, {
         active: false,
@@ -185,6 +202,7 @@ export class StripeService {
   }
 
   constructEvent(rawBody: Buffer, signature: string): Stripe.Event {
+    this.logger.log('Constructing Stripe webhook event');
     const webhookSecret = this.configService.getOrThrow<string>(
       'STRIPE_WEBHOOK_SECRET',
     );
