@@ -11,6 +11,8 @@ import { LoginDto } from './dto/requests/login.dto';
 import { ResetTokenDto } from './dto/responses/reset-token.dto';
 import { ResetPasswordDto } from './dto/requests/reset-password.dto';
 import { NotificationsProducer } from '../notifications/notifications.producer';
+import { UsersService } from '../users/users.service';
+import { randomUUID } from 'crypto';
 
 @Injectable()
 export class AuthService {
@@ -21,6 +23,7 @@ export class AuthService {
     private jwtService: JwtService,
     private configService: ConfigService,
     private notificationsProducer: NotificationsProducer,
+    private usersService: UsersService,
   ) {
     this.saltRounds = parseInt(
       this.configService.get<string>('BCRYPT_SALT_ROUNDS', '10'),
@@ -28,35 +31,33 @@ export class AuthService {
   }
 
   async createAccessToken(email: string): Promise<RefreshTokenDto> {
-    const user = await this.prisma.user.findUnique({ where: { email } });
+    const user = await this.usersService.findByEmail(email);
 
     if (!user) {
       throw new ConflictException('The email is not registered');
     }
 
-    const authToken = await this.prisma.refreshToken.create({
+    const tokenId = randomUUID();
+    const expiresAt = new Date(Date.now() + 60 * 24 * 60 * 60 * 1000);
+    const rawToken = this.jwtService.sign(
+      { sub: user.userId, email, role: user.role, jti: tokenId },
+      { expiresIn: '60d' },
+    );
+
+    await this.prisma.refreshToken.create({
       data: {
+        tokenId,
         userId: user.userId,
-        refreshToken: this.jwtService.sign(
-          {
-            sub: user.userId,
-            email,
-            role: user.role,
-          },
-          { expiresIn: '60d' },
-        ),
-        expiresAt: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
+        tokenHash: await bcrypt.hash(rawToken, this.saltRounds),
+        expiresAt,
       },
     });
 
-    return {
-      refresh_token: authToken.refreshToken,
-      expires_at: authToken.expiresAt,
-    };
+    return { refresh_token: rawToken, expires_at: expiresAt };
   }
 
   async createResetToken(email: string): Promise<ResetTokenDto> {
-    const user = await this.prisma.user.findUnique({ where: { email } });
+    const user = await this.usersService.findByEmail(email);
 
     if (!user) {
       throw new ConflictException('The email is not registered');
@@ -82,25 +83,18 @@ export class AuthService {
   }
 
   async signup(dto: RegisterDto): Promise<UserDto> {
-    // TODO: implement registration
-    const exists = await this.prisma.user.findUnique({
-      where: { email: dto.email },
-    });
+    const exists = await this.usersService.findByEmail(dto.email);
 
     if (exists) {
       throw new ConflictException('Email already registered');
     }
 
-    const newUser = await this.prisma.user.create({
-      include: { address: {} },
-      data: {
-        email: dto.email,
-        firstName: dto.firstName,
-        lastName: dto.lastName,
-        password: await bcrypt.hash(dto.password, this.saltRounds),
-        role: dto.role,
-        address: { create: {} },
-      },
+    const newUser = await this.usersService.create({
+      email: dto.email,
+      firstName: dto.firstName,
+      lastName: dto.lastName,
+      password: await bcrypt.hash(dto.password, this.saltRounds),
+      role: dto.role,
     });
 
     const authToken = await this.createAccessToken(newUser.email);
@@ -109,10 +103,7 @@ export class AuthService {
   }
 
   async signin(dto: LoginDto): Promise<RefreshTokenDto> {
-    // TODO: implement login
-    const exists = await this.prisma.user.findUnique({
-      where: { email: dto.email },
-    });
+    const exists = await this.usersService.findByEmail(dto.email);
 
     if (!exists) {
       throw new ConflictException('Email not registered');
@@ -128,26 +119,42 @@ export class AuthService {
   }
 
   async signout(token: string): Promise<void> {
-    // TODO: implement logout (revoke refresh token)
-    try {
-      await this.prisma.refreshToken.update({
-        where: {
-          refreshToken: token,
-        },
-        data: {
-          revoked: true,
-        },
-      });
-    } catch (error) {
-      console.log(error);
+    const payload: unknown = this.jwtService.decode(token);
+
+    if (
+      typeof payload !== 'object' ||
+      payload === null ||
+      !('jti' in payload)
+    ) {
       throw new ConflictException("The token doesn't exist");
     }
+
+    const { jti } = payload;
+    if (typeof jti !== 'string' || !jti) {
+      throw new ConflictException("The token doesn't exist");
+    }
+
+    const dbToken = await this.prisma.refreshToken.findUnique({
+      where: { tokenId: jti },
+    });
+
+    if (!dbToken) {
+      throw new ConflictException("The token doesn't exist");
+    }
+
+    const isValid = await bcrypt.compare(token, dbToken.tokenHash);
+    if (!isValid) {
+      throw new ConflictException("The token doesn't exist");
+    }
+
+    await this.prisma.refreshToken.update({
+      where: { tokenId: jti },
+      data: { revoked: true },
+    });
   }
 
   async forgotPassword(email: string): Promise<ResetTokenDto> {
-    const user = await this.prisma.user.findUnique({
-      where: { email },
-    });
+    const user = await this.usersService.findByEmail(email);
 
     if (!user) {
       throw new ConflictException('The email is not registered');

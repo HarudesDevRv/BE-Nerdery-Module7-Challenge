@@ -21,6 +21,7 @@ import { OrderItemsLoader } from './orders/loaders/order-items.loader';
 import { OrderPromoCodesLoader } from './orders/loaders/order-promo-codes.loader';
 import { DeliveryModule } from './delivery/delivery.module';
 import { InventoryModule } from './inventory/inventory.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -56,8 +57,11 @@ import { InventoryModule } from './inventory/inventory.module';
         context: () => ({
           imagesLoader: imageLoader.createLoader(),
           inventoriesLoader: inventoryLoader.createLoader(),
-          orderItemsLoader: orderItemLoader.createLoader(),
-          orderPromoCodesLoader: orderPromoCodeLoader.createLoader(),
+          // Order loaders are passed as service instances so that
+          // @ResolveField methods can call createLoader(requestedFields)
+          // lazily with the sub-selection from the current request.
+          orderItemsLoader: orderItemLoader,
+          orderPromoCodesLoader: orderPromoCodeLoader,
         }),
       }),
     }),
@@ -73,6 +77,7 @@ import { InventoryModule } from './inventory/inventory.module';
     PromoCodeModule,
     DeliveryModule,
     InventoryModule,
+    UsersModule,
   ],
 })
 export class AppModule {}

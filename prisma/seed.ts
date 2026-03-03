@@ -1,11 +1,9 @@
 import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import * as bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
 const saltRounds = 10;
 
 const connectionString = process.env.DATABASE_URL;
-const jwtSecret = process.env.JWT_SECRET;
 if (!connectionString) {
   throw new Error('Database URL not found');
 }
@@ -47,22 +45,6 @@ async function seed() {
     },
   });
 
-  await prisma.refreshToken.create({
-    data: {
-      userId: client1.userId,
-      refreshToken: jwt.sign(
-        {
-          sub: client1.userId,
-          email: client1.email,
-          role: client1.role,
-        },
-        jwtSecret || 'secret',
-        { expiresIn: '60d' },
-      ),
-      expiresAt: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
-    },
-  });
-
   const client2 = await prisma.user.upsert({
     where: { email: 'test_client2@mail.com' },
     update: {},
@@ -86,22 +68,6 @@ async function seed() {
     },
   });
 
-  await prisma.refreshToken.create({
-    data: {
-      userId: client2.userId,
-      refreshToken: jwt.sign(
-        {
-          sub: client2.userId,
-          email: client2.email,
-          role: client2.role,
-        },
-        jwtSecret || 'secret',
-        { expiresIn: '60d' },
-      ),
-      expiresAt: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
-    },
-  });
-
   const manager = await prisma.user.upsert({
     where: { email: 'test_manager@mail.com' },
     update: {},
@@ -121,24 +87,8 @@ async function seed() {
     },
   });
 
-  await prisma.refreshToken.create({
-    data: {
-      userId: manager.userId,
-      refreshToken: jwt.sign(
-        {
-          sub: manager.userId,
-          email: manager.email,
-          role: manager.role,
-        },
-        jwtSecret || 'secret',
-        { expiresIn: '60d' },
-      ),
-      expiresAt: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
-    },
-  });
-
   //deliveryPerson
-  const delivery = await prisma.user.upsert({
+  await prisma.user.upsert({
     where: { email: 'test_delivery@mail.com' },
     update: {},
     create: {
@@ -154,22 +104,6 @@ async function seed() {
           country: 'Peru',
         },
       },
-    },
-  });
-
-  await prisma.refreshToken.create({
-    data: {
-      userId: delivery.userId,
-      refreshToken: jwt.sign(
-        {
-          sub: delivery.userId,
-          email: delivery.email,
-          role: delivery.role,
-        },
-        jwtSecret || 'secret',
-        { expiresIn: '60d' },
-      ),
-      expiresAt: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
     },
   });
 

@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { Request } from 'express';
+import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../../common/services/prisma/prisma.service';
 import { JwtPayload } from '../../common/types';
 
@@ -23,15 +24,20 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   async validate(req: Request, payload: JwtPayload) {
     const token = ExtractJwt.fromAuthHeaderAsBearerToken()(req);
 
-    if (!token) {
+    if (!token || !payload.jti) {
       throw new UnauthorizedException('Token is revoked or expired');
     }
 
     const dbToken = await this.prisma.refreshToken.findUnique({
-      where: { refreshToken: token },
+      where: { tokenId: payload.jti },
     });
 
     if (!dbToken || dbToken.revoked || dbToken.expiresAt < new Date()) {
+      throw new UnauthorizedException('Token is revoked or expired');
+    }
+
+    const isValid = await bcrypt.compare(token, dbToken.tokenHash);
+    if (!isValid) {
       throw new UnauthorizedException('Token is revoked or expired');
     }
 

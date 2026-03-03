@@ -139,8 +139,8 @@ type PromoCode {
 
 type Delivery {
   deliveryId: ID!
+  orderId: ID!
   status: DeliveryStatus!
-  orderId: String!
   deliveryPersonId: String
   estimatedDelivery: DateTime
   deliveredAt: DateTime
@@ -204,6 +204,7 @@ type Mutation {
   createGuestOrder(input: CreateGuestOrderInput!): Order!
   createOrder(input: CreateOrderInput!): Order!
   createSingleItemOrder(input: CreateSingleItemOrderInput!): Order!
+  processOrder(orderId: ID!): Order!
   addToCart(input: AddToCartInput!): Cart!
   updateCartItem(input: UpdateCartItemInput!): Cart!
   removeCartItem(inventoryId: ID!): Cart!
@@ -211,8 +212,9 @@ type Mutation {
   createPromoCode(input: CreatePromoCodeInput!): PromoCode!
   updatePromoCode(id: String!, input: UpdatePromoCodeInput!): PromoCode!
   disablePromoCode(id: String!): PromoCode!
-  updateDeliveryStatus(deliveryId: String!, input: UpdateDeliveryInput!): Delivery!
-  assignDelivery(deliveryId: String!, deliveryPersonId: String!): Delivery!
+  updateDeliveryStatus(deliveryId: ID!, input: UpdateDeliveryInput!): Delivery!
+  assignDelivery(deliveryId: ID!): Delivery!
+  completeDelivery(deliveryId: ID!, deliveryPersonId: ID!): Delivery!
   addInventory(input: CreateInventoryInput!): Inventory!
   updateInventory(inventoryId: ID!, input: UpdateInventoryInput!): Inventory!
   removeInventory(inventoryId: ID!): Boolean!

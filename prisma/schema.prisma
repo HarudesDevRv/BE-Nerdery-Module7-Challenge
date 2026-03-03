@@ -43,14 +43,14 @@ enum DeliveryStatus {
 }
 
 model Address {
-  addressId  String    @id @default(uuid()) @map("address_id")
-  address    String    @default("") @map("address") @db.VarChar(255)
-  city       String    @default("") @map("city") @db.VarChar(100)
-  country    String    @default("") @map("country") @db.VarChar(100)
-  postalCode String?   @map("postal_code") @db.VarChar(20)
-  createdAt  DateTime  @default(now()) @map("created_at")
-  updatedAt  DateTime  @updatedAt @map("updated_at")
-  deletedAt  DateTime? @map("deleted_at")
+  addressId  String     @id @default(uuid()) @map("address_id")
+  address    String     @default("") @map("address") @db.VarChar(255)
+  city       String     @default("") @map("city") @db.VarChar(100)
+  country    String     @default("") @map("country") @db.VarChar(100)
+  postalCode String?    @map("postal_code") @db.VarChar(20)
+  createdAt  DateTime   @default(now()) @map("created_at")
+  updatedAt  DateTime   @updatedAt @map("updated_at")
+  deletedAt  DateTime?  @map("deleted_at")
   user       User?
   store      Store?
   deliveries Delivery[]
@@ -83,12 +83,13 @@ model User {
 }
 
 model RefreshToken {
-  refreshToken String   @id @map("refresh_token") @db.VarChar(500)
-  userId       String   @map("user_id")
-  user         User     @relation(fields: [userId], references: [userId])
-  createdAt    DateTime @default(now()) @map("created_at")
-  expiresAt    DateTime @map("expiration_time")
-  revoked      Boolean  @default(false)
+  tokenId   String   @id @default(uuid()) @map("token_id")
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [userId])
+  tokenHash String   @map("token_hash") @db.VarChar(72)
+  createdAt DateTime @default(now()) @map("created_at")
+  expiresAt DateTime @map("expiration_time")
+  revoked   Boolean  @default(false)
 
   @@map("refresh_tokens")
 }
@@ -190,7 +191,7 @@ model Inventory {
   price       Decimal        @db.Decimal(8, 2)
   salePrice   Decimal        @map("sale_price") @db.Decimal(8, 2)
   stock       Int
-  isActive    Boolean?       @default(true) @map("is_active") 
+  isActive    Boolean        @default(true) @map("is_active")
   deletedAt   DateTime?      @map("deleted_at")
   orders      OrderProduct[]
   carts       CartItem[]
