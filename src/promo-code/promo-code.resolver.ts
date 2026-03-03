@@ -4,13 +4,12 @@ import { PromoCodeService } from './services/promo-code.service';
 import { PromoCode } from './models/promo-code.model';
 import { CreatePromoCodeInput } from './dto/create-promo-code.input';
 import { UpdatePromoCodeInput } from './dto/update-promo-code.input';
-import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { PoliciesGuard } from '../common/casl/policies.guard';
 import { CheckPolicies } from '../common/casl/check-policies.decorator';
 import { Action } from '../common/casl/casl-ability.factory';
 
 @Resolver(() => PromoCode)
-@UseGuards(JwtAuthGuard, PoliciesGuard)
+@UseGuards(PoliciesGuard)
 export class PromoCodeResolver {
   constructor(private readonly promoCodeService: PromoCodeService) {}
 

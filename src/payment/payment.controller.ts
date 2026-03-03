@@ -3,7 +3,6 @@ import {
   Body,
   Controller,
   Post,
-  UseGuards,
   Headers,
   RawBody,
   InternalServerErrorException,
@@ -11,12 +10,12 @@ import {
 import { PaymentService } from './payment.service';
 import { CreatePaymentIntentDto } from './dto/requests/create-payment-intent.dto';
 import { CreateCheckoutSessionDto } from './dto/requests/create-checkout-session.dto';
-import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { StripeService } from 'src/common/services/stripe/stripe.service';
 import Stripe from 'stripe';
 import { PaymentIntentResponseDto } from './dto/responses/payment-intent-response.dto';
 import { CheckoutSessionResponseDto } from './dto/responses/checkout-session-response.dto';
 import { WebhookResponseDto } from './dto/responses/webhook-response.dto';
+import { Public } from '../common/decorators/public.decorator';
 
 @Controller('payments')
 export class PaymentController {
@@ -26,7 +25,6 @@ export class PaymentController {
   ) {}
 
   @Post('payment-intents')
-  @UseGuards(JwtAuthGuard)
   createPaymentIntent(
     @Body() dto: CreatePaymentIntentDto,
   ): Promise<PaymentIntentResponseDto> {
@@ -34,7 +32,6 @@ export class PaymentController {
   }
 
   @Post('checkout-sessions')
-  @UseGuards(JwtAuthGuard)
   createCheckoutSession(
     @Body() dto: CreateCheckoutSessionDto,
   ): Promise<CheckoutSessionResponseDto> {
@@ -42,6 +39,7 @@ export class PaymentController {
   }
 
   @Post('webhooks')
+  @Public()
   async handleWebhook(
     @Headers('stripe-signature') signature: string,
     @RawBody() rawBody: Buffer,

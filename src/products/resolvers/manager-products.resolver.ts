@@ -18,7 +18,6 @@ import {
   InternalServerErrorException,
   UseGuards,
 } from '@nestjs/common';
-import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { PoliciesGuard } from 'src/common/casl/policies.guard';
 import { CheckPolicies } from 'src/common/casl/check-policies.decorator';
 import { Action } from 'src/common/casl/casl-ability.factory';
@@ -39,7 +38,7 @@ export class ManagerProductResolver {
     private s3Service: S3Service,
   ) {}
   @Query(() => ManagerProductsPage)
-  @UseGuards(JwtAuthGuard, PoliciesGuard)
+  @UseGuards(PoliciesGuard)
   @CheckPolicies((ability) => ability.can(Action.Create, 'Product'))
   async managerProducts(
     @CurrentUser() user: { userId: string },
@@ -49,7 +48,7 @@ export class ManagerProductResolver {
   }
 
   @Mutation(() => ManagerProduct)
-  @UseGuards(JwtAuthGuard, PoliciesGuard)
+  @UseGuards(PoliciesGuard)
   @CheckPolicies((ability) => ability.can(Action.Create, 'Product'))
   async createProduct(
     @Args('input') input: CreateProductInput,
@@ -60,7 +59,7 @@ export class ManagerProductResolver {
   }
 
   @Mutation(() => ManagerProduct)
-  @UseGuards(JwtAuthGuard, PoliciesGuard)
+  @UseGuards(PoliciesGuard)
   @CheckPolicies((ability) => ability.can(Action.Update, 'Product'))
   async updateProduct(
     @Args({ name: 'productId', type: () => ID }) productId: string,
@@ -71,7 +70,7 @@ export class ManagerProductResolver {
   }
 
   @Mutation(() => Boolean)
-  @UseGuards(JwtAuthGuard, PoliciesGuard)
+  @UseGuards(PoliciesGuard)
   @CheckPolicies((ability) => ability.can(Action.Delete, 'Product'))
   async deleteProduct(
     @Args({ name: 'productId', type: () => ID }) productId: string,
@@ -81,7 +80,7 @@ export class ManagerProductResolver {
   }
 
   @Mutation(() => ProductImage)
-  @UseGuards(JwtAuthGuard, PoliciesGuard)
+  @UseGuards(PoliciesGuard)
   @CheckPolicies((ability) => ability.can(Action.Create, 'Image'))
   async uploadProductImage(
     @Args({ name: 'productId', type: () => ID }) productId: string,
@@ -130,7 +129,7 @@ export class ManagerProductResolver {
   }
 
   @Mutation(() => Boolean)
-  @UseGuards(JwtAuthGuard, PoliciesGuard)
+  @UseGuards(PoliciesGuard)
   @CheckPolicies((ability) => ability.can(Action.Create, 'Image'))
   async deleteProductImage(
     @Args({ name: 'imageId', type: () => ID }) imageId: string,

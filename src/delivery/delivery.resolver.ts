@@ -3,14 +3,13 @@ import { UseGuards } from '@nestjs/common';
 import { DeliveryService } from './delivery.service';
 import { Delivery } from './models/delivery.model';
 import { UpdateDeliveryInput } from './dto/update-delivery.input';
-import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { PoliciesGuard } from '../common/casl/policies.guard';
 import { CheckPolicies } from '../common/casl/check-policies.decorator';
 import { Action } from '../common/casl/casl-ability.factory';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 
 @Resolver(() => Delivery)
-@UseGuards(JwtAuthGuard, PoliciesGuard)
+@UseGuards(PoliciesGuard)
 export class DeliveryResolver {
   constructor(private deliveryService: DeliveryService) {}
 

@@ -17,22 +17,24 @@ import {
   ProductsPage,
 } from '../models/product-detail.model';
 import DataLoader from 'dataloader';
-import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { PoliciesGuard } from 'src/common/casl/policies.guard';
 import { CheckPolicies } from 'src/common/casl/check-policies.decorator';
 import { Action } from 'src/common/casl/casl-ability.factory';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
+import { Public } from 'src/common/decorators/public.decorator';
 
 @Resolver(() => ProductWithDetails)
 export class ProductsResolver {
   constructor(private productsService: ProductsService) {}
 
   @Query(() => [Category])
+  @Public()
   productCategories(): Promise<Partial<Category>[]> {
     return this.productsService.getCategories();
   }
 
   @Query(() => ProductsPage)
+  @Public()
   async products(
     @Args('filter', { nullable: true }) filter?: ProductFilterInput,
   ): Promise<ProductsPage> {
@@ -40,6 +42,7 @@ export class ProductsResolver {
   }
 
   @Query(() => ProductWithDetails)
+  @Public()
   productDetail(
     @Args({ name: 'productId', type: () => ID }) productId: string,
   ): Promise<Partial<ProductWithDetails>> {
@@ -47,7 +50,7 @@ export class ProductsResolver {
   }
 
   @Mutation(() => Boolean)
-  @UseGuards(JwtAuthGuard, PoliciesGuard)
+  @UseGuards(PoliciesGuard)
   @CheckPolicies((ability) => ability.can(Action.Like, 'Product'))
   async toggleLike(
     @Args({ name: 'productId', type: () => ID }) productId: string,

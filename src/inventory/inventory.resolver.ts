@@ -5,14 +5,13 @@ import { Inventory } from '../products/models/manager-product.model';
 import { Store } from './models/store.model';
 import { CreateInventoryInput } from './dto/create-inventory.input';
 import { UpdateInventoryInput } from './dto/update-inventory.input';
-import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { PoliciesGuard } from '../common/casl/policies.guard';
 import { CheckPolicies } from '../common/casl/check-policies.decorator';
 import { Action } from '../common/casl/casl-ability.factory';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 
 @Resolver()
-@UseGuards(JwtAuthGuard, PoliciesGuard)
+@UseGuards(PoliciesGuard)
 @CheckPolicies((ability) => ability.can(Action.Update, 'Product'))
 export class InventoryResolver {
   constructor(private inventoryService: InventoryService) {}

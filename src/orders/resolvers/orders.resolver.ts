@@ -14,7 +14,6 @@ import { Order, OrderItem, OrderPromoCode } from '../models/order.model';
 import { CreateOrderInput } from '../dto/create-order.input';
 import { CreateSingleItemOrderInput } from '../dto/create-single-item-order.input';
 import { OrderFilterInput } from '../dto/order-filter.input';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { PoliciesGuard } from '../../common/casl/policies.guard';
 import { CheckPolicies } from '../../common/casl/check-policies.decorator';
 import { Action } from '../../common/casl/casl-ability.factory';
@@ -32,7 +31,7 @@ type OrdersContext = {
 };
 
 @Resolver(() => Order)
-@UseGuards(JwtAuthGuard, PoliciesGuard)
+@UseGuards(PoliciesGuard)
 export class OrdersResolver {
   constructor(private ordersService: OrdersService) {}
 
