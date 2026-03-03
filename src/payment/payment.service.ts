@@ -5,6 +5,7 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { plainToInstance } from 'class-transformer';
 import { PrismaService } from '../common/services/prisma/prisma.service';
 import { CreatePaymentIntentDto } from './dto/requests/create-payment-intent.dto';
@@ -12,17 +13,17 @@ import { CreateCheckoutSessionDto } from './dto/requests/create-checkout-session
 import { PaymentIntentResponseDto } from './dto/responses/payment-intent-response.dto';
 import { CheckoutSessionResponseDto } from './dto/responses/checkout-session-response.dto';
 import { StripeService } from 'src/common/services/stripe/stripe.service';
+import { PaymentSucceededEvent } from './events/payment-succeeded.event';
 import Stripe from 'stripe';
-import { NotificationsProducer } from 'src/notifications/notifications.producer';
 
 @Injectable()
 export class PaymentService {
-  private readonly logger = new Logger(StripeService.name);
+  private readonly logger = new Logger(PaymentService.name);
 
   constructor(
     private prisma: PrismaService,
     private stripe: StripeService,
-    private notificationsProducer: NotificationsProducer,
+    private eventEmitter: EventEmitter2,
   ) {}
 
   private async validateOrder(orderId: string): Promise<void> {
@@ -44,6 +45,7 @@ export class PaymentService {
   async createPaymentIntent(
     dto: CreatePaymentIntentDto,
   ): Promise<PaymentIntentResponseDto> {
+    this.logger.log(`Creating payment intent for orderId: ${dto.orderId}`);
     await this.validateOrder(dto.orderId);
     const paymentIntent = await this.stripe.createPaymentIntent(
       dto.amount,
@@ -76,6 +78,7 @@ export class PaymentService {
   async createCheckoutSession(
     dto: CreateCheckoutSessionDto,
   ): Promise<CheckoutSessionResponseDto> {
+    this.logger.log(`Creating checkout session for orderId: ${dto.orderId}`);
     await this.validateOrder(dto.orderId);
 
     const checkoutSession = await this.stripe.createCheckoutSession(dto.items);
@@ -106,6 +109,7 @@ export class PaymentService {
   }
 
   async handleWebhook(event: Stripe.Event): Promise<void> {
+    this.logger.log(`Handling Stripe webhook event: ${event.type}`);
     let paymentId: string | null = null;
     //TODO: Update the promo codes used on the order payment
     switch (event.type) {
@@ -128,11 +132,13 @@ export class PaymentService {
         break;
       }
     }
+
     if (!paymentId) {
       throw new InternalServerErrorException(
         "The payment couldn't be processed",
       );
     }
+
     const updatedOrder = await this.prisma.order.update({
       where: { paymentId },
       data: { status: 'paid' },
@@ -149,72 +155,18 @@ export class PaymentService {
       return;
     }
 
-    for (const item of updatedOrder.products) {
-      await this.decrementStockAndNotify(item.inventoryId, item.amount);
-    }
+    const payload: PaymentSucceededEvent = {
+      orderId: updatedOrder.orderId,
+      addressId: updatedOrder.addressId,
+      products: updatedOrder.products.map((p) => ({
+        inventoryId: p.inventoryId,
+        amount: p.amount,
+      })),
+    };
 
-    await this.prisma.delivery.create({
-      data: {
-        orderId: updatedOrder.orderId,
-        addressId: updatedOrder.addressId,
-      },
-    });
-  }
-
-  private async decrementStockAndNotify(
-    inventoryId: string,
-    amount: number,
-  ): Promise<void> {
-    const updatedInventory = await this.prisma.inventory.update({
-      where: { inventoryId },
-      data: { stock: { decrement: amount } },
-      include: {
-        product: { include: { images: true } },
-      },
-    });
-
-    if (updatedInventory.stock <= 3) {
-      const { _sum } = await this.prisma.inventory.aggregate({
-        where: { productId: updatedInventory.productId },
-        _sum: { stock: true },
-      });
-      const totalStock = _sum.stock ?? 0;
-
-      if (totalStock <= 3) {
-        const likes = await this.prisma.userLike.findMany({
-          where: {
-            productId: updatedInventory.productId,
-            isActive: true,
-            user: {
-              orders: {
-                none: {
-                  status: {
-                    in: ['paid', 'processing', 'shipped', 'delivered'],
-                  },
-                  products: {
-                    some: {
-                      products: {
-                        productId: updatedInventory.productId,
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-          include: { user: true },
-        });
-
-        await this.notificationsProducer.notifyLowStock({
-          productName: updatedInventory.product.name,
-          stock: totalStock,
-          userEmails: likes.map((like) => like.user.email),
-          productImageUrl:
-            updatedInventory.product.images.length > 0
-              ? updatedInventory.product.images[0].url
-              : null,
-        });
-      }
-    }
+    this.eventEmitter.emit('payment.succeeded', payload);
+    this.logger.log(
+      `payment.succeeded event emitted for orderId: ${updatedOrder.orderId}`,
+    );
   }
 }
