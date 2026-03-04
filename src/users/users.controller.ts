@@ -1,18 +1,30 @@
-import { Body, Controller, Patch } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  ForbiddenException,
+  Param,
+  Patch,
+} from '@nestjs/common';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { UsersService } from './users.service';
-import { UpdateProfileDto } from './dto/req/update-profile.dto';
-import { UserProfileDto } from './dto/res/user-profile.dto';
+import { UpdateProfileDto } from './dto/requests/update-profile.dto';
+import { UserProfileDto } from './dto/responses/user-profile.dto';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
 @Controller('users')
 export class UsersController {
   constructor(private usersService: UsersService) {}
 
-  @Patch('profile')
+  @ApiBearerAuth('access-token')
+  @Patch(':id/profile')
   async updateProfile(
+    @Param('id') id: string,
     @CurrentUser() user: { userId: string },
     @Body() dto: UpdateProfileDto,
   ): Promise<UserProfileDto> {
-    return this.usersService.updateProfile(user.userId, dto);
+    if (id !== user.userId) {
+      throw new ForbiddenException('You can only update your own profile');
+    }
+    return this.usersService.updateProfile(id, dto);
   }
 }
