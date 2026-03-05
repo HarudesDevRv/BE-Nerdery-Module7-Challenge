@@ -1,61 +1,290 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# E-Commerce API
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+A comprehensive e-commerce backend API built with NestJS, GraphQL, and Prisma. This API provides a complete solution for managing products, orders, payments, authentication, and more.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## 🚀 Features
 
-## Description
+### Core E-Commerce Functionality
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+- **Product Management**: Create, update, and manage products with images, categories, and inventory
+- **Shopping Cart**: Add, update, and remove items from cart with persistence
+- **Order Management**: Complete order lifecycle from creation to fulfillment
+- **Payment Processing**: Secure payments through Stripe integration
+- **Promo Codes**: Discount system with flexible coupon management
+- **Inventory Management**: Real-time stock tracking and low-stock alerts
+- **Delivery Management**: Shipping options and tracking
 
-## Project setup
+### Authentication & Security
+
+- **JWT Authentication**: Secure user authentication with Passport.js
+- **Role-Based Access Control**: CASL-based permissions system
+- **Rate Limiting**: API protection with configurable request limits
+- **Input Validation**: Comprehensive validation with class-validator
+- **Security Headers**: Helmet.js for security best practices
+
+### API & Data
+
+- **GraphQL API**: Efficient data fetching with Apollo Server
+- **REST API**: Traditional REST endpoints with Swagger documentation
+- **Database**: PostgreSQL with Prisma ORM
+- **Data Loaders**: Optimized N+1 query prevention with DataLoader
+- **File Uploads**: AWS S3 integration for product images
+
+### Background Processing
+
+- **Email Notifications**: Automated emails for orders and account activities
+- **Job Queue**: BullMQ with Redis for background task processing
+- **Event-Driven Architecture**: EventEmitter for decoupled services
+
+## 🛠️ Technology Stack
+
+- **Framework**: [NestJS](https://nestjs.com/) - Progressive Node.js framework
+- **API**: GraphQL with Apollo Server + REST with Express
+- **Database**: PostgreSQL with [Prisma ORM](https://prisma.io/)
+- **Authentication**: JWT with Passport.js
+- **Payments**: [Stripe](https://stripe.com/)
+- **File Storage**: [AWS S3](https://aws.amazon.com/s3/)
+- **Queue**: [BullMQ](https://docs.bullmq.io/) with Redis
+- **Email**: [Nodemailer](https://nodemailer.com/)
+- **Validation**: class-validator & class-transformer
+- **Testing**: Jest with e2e tests
+
+## 📋 Prerequisites
+
+- Node.js (v18 or higher)
+- PostgreSQL database
+- Redis server
+- AWS S3 bucket (for file uploads)
+- Stripe account (for payments)
+
+## 🔧 Installation
+
+1. **Clone the repository**
+
+   ```bash
+   git clone <repository-url>
+   cd module-7-challenge
+   ```
+
+2. **Install dependencies**
+
+   ```bash
+   npm install
+   ```
+
+3. **Set up environment variables**
+
+   Create a `.env` file in the root directory with the following variables:
+
+   ```env
+   # Database
+   DATABASE_URL="postgresql://username:password@localhost:5432/ecommerce_db"
+
+   # JWT
+   JWT_SECRET="your-jwt-secret"
+   JWT_EXPIRES_IN="1h"
+
+   # Redis
+   REDIS_HOST="localhost"
+   REDIS_PORT=6379
+
+   # AWS S3
+   AWS_ACCESS_KEY_ID="your-aws-access-key"
+   AWS_SECRET_ACCESS_KEY="your-aws-secret-key"
+   AWS_REGION="us-east-1"
+   AWS_S3_BUCKET_NAME="your-bucket-name"
+
+   # Stripe
+   STRIPE_SECRET_KEY="sk_test_..."
+   STRIPE_WEBHOOK_SECRET="whsec_..."
+
+   # Email
+   SMTP_HOST="smtp.gmail.com"
+   SMTP_PORT=587
+   SMTP_USER="your-email@gmail.com"
+   SMTP_PASS="your-app-password"
+
+   # Application
+   PORT=3000
+   NODE_ENV="development"
+   ```
+
+4. **Set up the database**
+
+   ```bash
+   # Generate Prisma client
+   npm run prisma:generate
+
+   # Run database migrations
+   npm run prisma:migrate
+
+   # Seed the database (optional)
+   npm run prisma:seed
+   ```
+
+## 🚀 Running the Application
+
+### Development Mode
 
 ```bash
-$ npm install
+npm run start:dev
 ```
 
-## Compile and run the project
+### Production Mode
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+npm run build
+npm run start:prod
 ```
 
-## Run tests
+### Debug Mode
 
 ```bash
-# unit tests
+npm run start:debug
+```
+
+The API will be available at:
+
+- **GraphQL Playground**: http://localhost:3000/graphql
+- **REST API Documentation**: http://localhost:3000/api
+
+## 🧪 Testing
+
+### Unit Tests
+
+```bash
+npm run test
+```
+
+### E2E Tests
+
+```bash
+npm run test:e2e
+```
+
+### Test Coverage
+
+```bash
+npm run test:cov
+```
+
+### Watch Mode
+
+```bash
+npm run test:watch
+```
+
+## 📚 API Documentation
+
+### GraphQL Schema
+
+The GraphQL API provides comprehensive queries and mutations for all e-commerce operations:
+
+- **Authentication**: `login`, `register`, `refreshToken`
+- **Products**: `products`, `product`, `createProduct`, `updateProduct`
+- **Cart**: `cart`, `addToCart`, `updateCartItem`, `removeFromCart`
+- **Orders**: `orders`, `order`, `createOrder`, `updateOrderStatus`
+- **Payments**: `createPaymentIntent`, `confirmPayment`
+- **Users**: `user`, `updateUser`, `userOrders`
+
+### REST Endpoints
+
+Swagger documentation is available at `/api` when the server is running.
+
+## 🏗️ Project Structure
+
+```
+src/
+├── auth/                 # Authentication module
+├── cart/                 # Shopping cart functionality
+├── common/               # Shared utilities and services
+│   ├── casl/            # Authorization rules
+│   ├── decorators/      # Custom decorators
+│   ├── filters/         # Exception filters
+│   ├── guards/          # Route guards
+│   ├── services/        # Shared services (Prisma, S3, Stripe)
+│   └── utils/           # Utility functions
+├── delivery/            # Shipping and delivery
+├── inventory/           # Stock management
+├── notifications/       # Email and notification services
+├── orders/              # Order management
+├── payment/             # Payment processing
+├── products/            # Product catalog
+├── promo-code/          # Discount codes
+├── users/               # User management
+├── app.module.ts        # Main application module
+└── main.ts             # Application entry point
+```
+
+## 🔒 Security Features
+
+- **Helmet.js**: Security headers
+- **Rate Limiting**: Request throttling (5 requests per minute)
+- **Input Sanitization**: Automatic validation and transformation
+- **CORS**: Cross-origin resource sharing configuration
+- **JWT Tokens**: Secure authentication tokens
+- **Role-Based Permissions**: Granular access control
+
+## 📧 Email Notifications
+
+The application sends automated emails for:
+
+- Order confirmations
+- Payment receipts
+- Account registration
+- Password resets
+- Order status updates
+
+## 💳 Payment Integration
+
+- **Stripe Integration**: Secure payment processing
+- **Webhook Support**: Real-time payment status updates
+- **Multiple Currencies**: Support for various currencies
+- **Refund Management**: Handle payment refunds
+
+## 📁 File Uploads
+
+- **AWS S3 Integration**: Scalable file storage
+- **Image Optimization**: Automatic image processing
+- **Secure URLs**: Temporary signed URLs for private files
+
+## 🔄 Background Jobs
+
+- **Order Processing**: Asynchronous order fulfillment
+- **Email Delivery**: Queued email sending
+- **Data Synchronization**: Background data updates
+- **Report Generation**: Scheduled report creation
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📝 License
+
+This project is licensed under the UNLICENSED License.
+
+## 📞 Support
+
+For support and questions, please open an issue in the repository or contact the development team.
+
+---
+
+Built with ❤️ using [NestJS](https://nestjs.com/)
 $ npm run test
 
 # e2e tests
+
 $ npm run test:e2e
 
 # test coverage
+
 $ npm run test:cov
-```
+
+````
 
 ## Deployment
 
@@ -66,7 +295,7 @@ If you are looking for a cloud-based platform to deploy your NestJS application,
 ```bash
 $ npm install -g @nestjs/mau
 $ mau deploy
-```
+````
 
 With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
 

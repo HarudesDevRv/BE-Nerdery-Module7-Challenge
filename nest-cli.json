@@ -14,7 +14,8 @@
       {
         "name": "@nestjs/swagger",
         "options": {
-          "introspectComments": true
+          "introspectComments": true,
+          "classValidatorShim": true
         }
       }
     ]
