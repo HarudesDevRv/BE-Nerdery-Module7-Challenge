@@ -1,5 +1,6 @@
 import { Exclude, Expose, Type } from 'class-transformer';
 import { Role } from '@prisma/client';
+import { ApiProperty } from '@nestjs/swagger';
 
 @Exclude()
 export class AddressDto {
@@ -30,6 +31,10 @@ export class UserProfileDto {
   @Expose()
   readonly lastName: string;
 
+  @ApiProperty({
+    enum: Role,
+    enumName: 'UserRole',
+  })
   @Expose()
   readonly role: Role;
 

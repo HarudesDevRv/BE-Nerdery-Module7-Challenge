@@ -2,8 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Role } from '@prisma/client';
 import { plainToInstance } from 'class-transformer';
 import { PrismaService } from '../common/services/prisma/prisma.service';
-import { UpdateProfileDto } from './dto/req/update-profile.dto';
-import { UserProfileDto } from './dto/res/user-profile.dto';
+import { UpdateProfileDto } from './dto/requests/update-profile.dto';
+import { UserProfileDto } from './dto/responses/user-profile.dto';
 
 @Injectable()
 export class UsersService {

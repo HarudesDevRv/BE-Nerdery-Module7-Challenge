@@ -8,6 +8,7 @@ import {
   IsEnum,
 } from 'class-validator';
 import { Role } from '@prisma/client';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class RegisterDto {
   @IsEmail()
@@ -27,6 +28,10 @@ export class RegisterDto {
   @Length(8, 16)
   readonly password!: string;
 
+  @ApiProperty({
+    enum: Role,
+    enumName: 'UserRole',
+  })
   @IsOptional()
   @IsEnum(Role)
   readonly role: Role;

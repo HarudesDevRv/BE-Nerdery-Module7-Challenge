@@ -16,6 +16,7 @@ import { PaymentIntentResponseDto } from './dto/responses/payment-intent-respons
 import { CheckoutSessionResponseDto } from './dto/responses/checkout-session-response.dto';
 import { WebhookResponseDto } from './dto/responses/webhook-response.dto';
 import { Public } from '../common/decorators/public.decorator';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
 @Controller('payments')
 export class PaymentController {
@@ -24,6 +25,7 @@ export class PaymentController {
     private stripeService: StripeService,
   ) {}
 
+  @ApiBearerAuth('access-token')
   @Post('payment-intents')
   createPaymentIntent(
     @Body() dto: CreatePaymentIntentDto,
@@ -31,6 +33,7 @@ export class PaymentController {
     return this.paymentService.createPaymentIntent(dto);
   }
 
+  @ApiBearerAuth('access-token')
   @Post('checkout-sessions')
   createCheckoutSession(
     @Body() dto: CreateCheckoutSessionDto,

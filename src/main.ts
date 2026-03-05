@@ -29,10 +29,20 @@ async function bootstrap() {
   app.set('query parser', 'extended');
 
   const config = new DocumentBuilder()
-    .setTitle('Cats example')
-    .setDescription('The cats API description')
+    .setTitle('E-commerce API')
+    .setDescription(
+      'An API to manage authentication and payments for an e-commerce',
+    )
     .setVersion('1.0')
     .addTag('cats')
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+      },
+      'access-token',
+    )
     .build();
   const documentFactory = () => SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, documentFactory);

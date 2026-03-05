@@ -1,3 +1,4 @@
+import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
   IsArray,
@@ -11,10 +12,23 @@ import {
 } from 'class-validator';
 
 export class CheckoutItemDto {
+  @ApiProperty({
+    description: 'ISO4217 Currency Code',
+    example: 'usd',
+    format: 'currency',
+  })
   @IsString()
   @IsISO4217CurrencyCode()
   readonly currency!: string;
 
+  /**
+   *
+   * Unit amount expressed in the currency's lowest possible value
+   * @example 10000
+   */
+  @ApiProperty({
+    type: 'integer',
+  })
   @IsInt()
   @IsPositive()
   readonly unitAmount!: number;

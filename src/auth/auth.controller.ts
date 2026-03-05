@@ -10,6 +10,7 @@ import { RefreshTokenDto } from './dto/responses/refresh-token.dto';
 import { ResetTokenDto } from './dto/responses/reset-token.dto';
 import { UserDto } from './dto/responses/user.dto';
 import { Public } from '../common/decorators/public.decorator';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
 @Controller('auth')
 export class AuthController {
@@ -27,6 +28,7 @@ export class AuthController {
     return this.authService.signin(dto);
   }
 
+  @ApiBearerAuth('access-token')
   @Post('signout')
   async logout(@Body() dto: SignoutDto): Promise<void> {
     return this.authService.signout(dto.refresh_token);
